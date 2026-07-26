@@ -30,7 +30,6 @@ class Slimjson:
         return None 
 
     def parse_object_list(self, sjson, delimiters=None):
-        obj = None;
         self.i = self.skip_formatting(sjson, self.i);
         if sjson[self.i] == "{" :
             return self.parse_object_dictionary(sjson);

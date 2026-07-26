@@ -71,7 +71,7 @@ def start():
 
     # todo: let them choose which save to proceed with
     print(save_count)
-    location_times: dict[(str, int), LocationStats] = {}
+    location_times: dict[tuple[str, int], LocationStats] = {}
     get_location_times(save, location_times)
 
     print(location_times)

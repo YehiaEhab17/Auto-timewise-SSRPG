@@ -2,12 +2,101 @@ import base64
 import hashlib
 import platform
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import Rijndael
 from Slimjson import Slimjson
 
+LOCATIONS = {
+    "rocky_plateau" : "Rocky Plateau",
+    "deadwood_valley" : "Deadwood Canyon",
+    "caustic_caves" : "Caves of Fear",
+    "fungus_forest" : "Mushroom Forest",
+    "undead_crypt" : "Haunted Halls",
+    "bronze_mine" : "Boiling Mine",
+    "icy_ridge" : "Icy Ridge",
+    "temple" : "Temple"
+}
+
+
+# {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
+@dataclass
+class LocationStat:
+    id : str # loc id e.g caustic_caves3
+    name: str 
+    stars: int
+    bT : float # best time in frames
+    aT : float # average time in frames
+    aHl : float # average health lost
+    aHg : float # average health gain
+    net_hp : float
+    aKg : float # average ki gain
+    aRg : float # average resource gain
+    d : float # damage?
+    #todo: maybe implement stuff for eent resources
+
 save = None
+def start():
+    global save 
+    
+    print("hello!!!!!!! world!!!!!!!!")
+    print(f"you use {platform.system()}")
+    # todo: add actual UX 
+
+    saves = get_steam_path()
+    selected = None
+
+    if saves is None or len(saves) == 0:
+        print("no saves found, input path?")
+        return
+        # todo: allow user to input path or paste the full save
+
+    else:
+        choice = input("choose a steam profile (enter the number, defaults to the first one)").strip()
+
+        try:
+            selected = saves[int(choice)]
+        except (ValueError, IndexError):
+            print("selecting the first steam profile")
+            selected = saves[0]
+
+        with open(str(selected), "r") as f:
+            save_text = f.read()
+
+        save, save_count = get_saves(save_text)
+
+    
+    
+    #todo: let them choose which save to proceed with
+
+    stats = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
+    print(stats)
+
+    #path 1: get the optimal stats direclty here
+    #path 2: output to timewise (local / web)
+    #path 3: get a copy paste for timewise
+
+    #todo extract logic from timewise   
+      
+def get_saves(save_text):
+    parser = Slimjson()
+    parsed = parser.parse(save_text)
+
+    i = 0
+    while True:
+        if f"save_file_{i}" not in parsed:
+            break
+        progress_data_e = parsed[f"save_file_{i}"]["progress_data"]
+        progress_data_d = decrypt_save(progress_data_e)
+
+        parsed[f"save_file_{i}"]["progress_data"] = parser.parse(progress_data_d)
+        parsed[f"save_file_{i}"]["progress_data"]["encrypted"] = False
+        i += 1
+
+    if i == 0:
+        print("no saves found for this steam profile")
+    return parsed, i 
 
 def decrypt_save(progress_data):
     temp = list(base64.b64decode(progress_data))
@@ -26,40 +115,6 @@ def decrypt_save(progress_data):
     plaintext = bytes(decrypted[:len(decrypted)-padding]).decode("utf-8")
 
     return plaintext
-
-def start():
-    global save 
-    
-    print("hello!!!!!!! world!!!!!!!!")
-    print(f"you use {platform.system()}")
-    # todo: add actual UX 
-
-    saves = get_steam_path()
-    selected = None
-
-    if saves is None or len(saves) == 0:
-        print("no saves found, input path?")
-        # todo: allow user to input path or paste the full save
-
-    else:
-        choice = input("choose a steam profile (enter the number, defaults to the first one)").strip()
-
-        try:
-            selected = saves[int(choice)]
-        except (ValueError, IndexError):
-            print("selecting the first steam profile")
-            selected = saves[0]
-
-        with open(str(selected), "r") as f:
-            save_text = f.read()
-
-        save, save_count = get_saves(save_text)
-        print(save)
-        print(save_count)
-
-
-      
-
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
 #
@@ -94,24 +149,6 @@ def get_steam_path():
 
     return save_files
 
-def get_saves(save_text):
-    parser = Slimjson()
-    parsed = parser.parse(save_text)
-
-    i = 0
-    while True:
-        if f"save_file_{i}" not in parsed:
-            break
-        progress_data_e = parsed[f"save_file_{i}"]["progress_data"]
-        progress_data_d = decrypt_save(progress_data_e)
-
-        parsed[f"save_file_{i}"]["progress_data"] = parser.parse(progress_data_d)
-        parsed[f"save_file_{i}"]["progress_data"]["encrypted"] = False
-        i += 1
-
-    if i == 0:
-        print("no saves found for this steam profile")
-    return parsed, i 
 
 if __name__ == "__main__":
     start()

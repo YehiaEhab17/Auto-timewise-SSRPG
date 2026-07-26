@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import platform
-
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,40 +8,43 @@ import Rijndael
 from Slimjson import Slimjson
 
 LOCATIONS = {
-    "rocky_plateau" : "Rocky Plateau",
-    "deadwood_valley" : "Deadwood Canyon",
-    "caustic_caves" : "Caves of Fear",
-    "fungus_forest" : "Mushroom Forest",
-    "undead_crypt" : "Haunted Halls",
-    "bronze_mine" : "Boiling Mine",
-    "icy_ridge" : "Icy Ridge",
-    "temple" : "Temple"
+    "rocky_plateau": "Rocky Plateau",
+    "deadwood_valley": "Deadwood Canyon",
+    "caustic_caves": "Caves of Fear",
+    "fungus_forest": "Mushroom Forest",
+    "undead_crypt": "Haunted Halls",
+    "bronze_mine": "Boiling Mine",
+    "icy_ridge": "Icy Ridge",
+    "temple": "Temple",
 }
 
 
 # {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
 @dataclass
-class LocationStat:
-    id : str # loc id e.g caustic_caves3
-    name: str 
+class LocationStats:
+    id: str  # loc id e.g caustic_caves3
+    name: str
     stars: int
-    bT : float # best time in frames
-    aT : float # average time in frames
-    aHl : float # average health lost
-    aHg : float # average health gain
-    net_hp : float
-    aKg : float # average ki gain
-    aRg : float # average resource gain
-    d : float # damage?
-    #todo: maybe implement stuff for eent resources
+    bT: float  # best time in frames
+    aT: float  # average time in frames
+    aHl: float  # average health lost
+    aHg: float  # average health gain
+    net_hp: float
+    aKg: float  # average ki gain
+    aRg: float  # average resource gain
+    d: float  # damage?
+    # todo: maybe implement stuff for eent resources
 
-save = None
+
+save: dict = {}
+
+
 def start():
-    global save 
-    
+    global save
+
     print("hello!!!!!!! world!!!!!!!!")
     print(f"you use {platform.system()}")
-    # todo: add actual UX 
+    # todo: add actual UX
 
     saves = get_steam_path()
     selected = None
@@ -53,7 +55,9 @@ def start():
         # todo: allow user to input path or paste the full save
 
     else:
-        choice = input("choose a steam profile (enter the number, defaults to the first one)").strip()
+        choice = input(
+            "choose a steam profile (enter the number, defaults to the first one)"
+        ).strip()
 
         try:
             selected = saves[int(choice)]
@@ -66,19 +70,18 @@ def start():
 
         save, save_count = get_saves(save_text)
 
-    
-    
-    #todo: let them choose which save to proceed with
-
-    stats = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
+    # todo: let them choose which save to proceed with
+    print(save_count)
+    stats: dict = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
     print(stats)
 
-    #path 1: get the optimal stats direclty here
-    #path 2: output to timewise (local / web)
-    #path 3: get a copy paste for timewise
+    # path 1: get the optimal stats direclty here
+    # path 2: output to timewise (local / web)
+    # path 3: get a copy paste for timewise
 
-    #todo extract logic from timewise   
-      
+    # todo extract logic from timewise
+
+
 def get_saves(save_text):
     parser = Slimjson()
     parsed = parser.parse(save_text)
@@ -96,7 +99,8 @@ def get_saves(save_text):
 
     if i == 0:
         print("no saves found for this steam profile")
-    return parsed, i 
+    return parsed, i
+
 
 def decrypt_save(progress_data):
     temp = list(base64.b64decode(progress_data))
@@ -105,21 +109,22 @@ def decrypt_save(progress_data):
     iv = temp[32:64]
     ciphertext = temp[64:]
 
-    key = hashlib.pbkdf2_hmac("sha1", b'peekabeyoufoundme', salt, 1000, 32)
+    key = hashlib.pbkdf2_hmac("sha1", b"peekabeyoufoundme", salt, 1000, 32)
 
-    cipher = Rijndael.RijndaelBlock(key, 'cbc')
+    cipher = Rijndael.RijndaelBlock(key, "cbc")
     decrypted = cipher.decrypt(ciphertext, 256, iv)
 
     padding = decrypted[-1]
 
-    plaintext = bytes(decrypted[:len(decrypted)-padding]).decode("utf-8")
+    plaintext = bytes(decrypted[: len(decrypted) - padding]).decode("utf-8")
 
     return plaintext
+
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
 #
 # MacOS: ~/Library/Application Support/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
-# 
+#
 # Linux: (your Steam install location for SSRPG)/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
 # typical install location: ~/.local/share/Steam/steamapps/common/Stone Story RPG/
 #
@@ -130,8 +135,10 @@ def get_steam_path():
         TYPICAL = Path.home() / ".local/share/Steam/steamapps/common/Stone Story RPG"
         steam_path = TYPICAL / "Martian Rex, Inc_/Stone Story"
 
-    elif os_name == "Darwin": 
-        steam_path = Path.home() / "Library/Application Support/Martian Rex, Inc_/Stone Story"
+    elif os_name == "Darwin":
+        steam_path = (
+            Path.home() / "Library/Application Support/Martian Rex, Inc_/Stone Story"
+        )
     elif os_name == "Windows":
         steam_path = Path.home() / "AppData/LocalLow/Martian Rex, Inc_/Stone Story"
     else:
@@ -141,15 +148,14 @@ def get_steam_path():
     if not steam_path.exists():
         print("save directory not found")
         return None
-    
+
     save_files = list(steam_path.glob("*/primary_save.txt"))
 
     for save in save_files:
-        print(f"{save_files.index(save)+1}. found save at {save.absolute()}")
+        print(f"{save_files.index(save) + 1}. found save at {save.absolute()}")
 
     return save_files
 
 
 if __name__ == "__main__":
     start()
-

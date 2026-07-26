@@ -1,15 +1,15 @@
 import base64
 import hashlib
-import Rijndael
 import platform
+
 from pathlib import Path
 
-def decrypt_save(save):
-    start = save.find("progress_data:") + len("progress_data:")
-    end =  save.find(",", start)
+import Rijndael
+from Slimjson import Slimjson
 
-    progress_data = save[start:end]
+save = None
 
+def decrypt_save(progress_data):
     temp = list(base64.b64decode(progress_data))
 
     salt = bytes(temp[0:32])
@@ -25,21 +25,49 @@ def decrypt_save(save):
 
     plaintext = bytes(decrypted[:len(decrypted)-padding]).decode("utf-8")
 
-    print(plaintext)
     return plaintext
 
 def start():
     print("hello!!!!!!! world!!!!!!!!")
     print(f"you use {platform.system()}")
-    get_steam_save()
+
+    saves = get_steam_save()
+    selected = None
+
+    if len(saves) == 0:
+        print("no saves found, input path?")
+
+    else:
+        while selected is None:
+            choice = input("choose a save (enter the number, defaults to the first one)").strip()
+            try:
+                selected = saves[int(choice)]
+            except (ValueError, IndexError):
+                selected = saves[0]
+
+            with open(str(selected), "r") as f:
+                save_text = f.read()
+
+            parser = Slimjson()
+            parsed = parser.parse(save_text)
+            progress_data_e = parsed["save_file_0"]["progress_data"]
+            progress_data_d = decrypt_save(progress_data_e)
+            parsed["save_file_0"]["progress_data"] = parser.parse(progress_data_d)
+            parsed["save_file_0"]["progress_data"]["encrypted"] = False
+
+            global save 
+            save = parsed
+
+      
 
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
-  
+#
 # MacOS: ~/Library/Application Support/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
-  
+# 
 # Linux: (your Steam install location for SSRPG)/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
 # typical install location: ~/.local/share/Steam/steamapps/common/Stone Story RPG/
+#
 def get_steam_save():
     os_name = platform.system()
 
@@ -62,7 +90,7 @@ def get_steam_save():
     save_files = list(steam_path.glob("*/primary_save.txt"))
 
     for save in save_files:
-        print(f"found save at {save.absolute()}")
+        print(f"{save_files.index(save)+1}. found save at {save.absolute()}")
 
     return save_files
 

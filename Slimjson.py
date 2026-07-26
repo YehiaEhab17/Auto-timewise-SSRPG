@@ -1,4 +1,4 @@
-class Slim_Json:
+class Slimjson:
     def __init__(self):
         self.arrayDelimiters = [',', ']'];
         self.dictDelimiters = [',', '}'];

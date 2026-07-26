@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import platform
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -22,7 +23,7 @@ LOCATIONS = {
 # {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
 @dataclass
 class LocationStats:
-    id: str  # loc id e.g caustic_caves3
+    loc_id: str  # loc id e.g caustic_caves3
     name: str
     stars: int
     bT: float  # best time in frames
@@ -31,16 +32,14 @@ class LocationStats:
     aHg: float  # average health gain
     net_hp: float
     aKg: float  # average ki gain
+    aXg: float  # average xp gain?
     aRg: float  # average resource gain
     d: float  # damage?
     # todo: maybe implement stuff for eent resources
 
 
-save: dict = {}
-
-
 def start():
-    global save
+    save: dict
 
     print("hello!!!!!!! world!!!!!!!!")
     print(f"you use {platform.system()}")
@@ -72,9 +71,10 @@ def start():
 
     # todo: let them choose which save to proceed with
     print(save_count)
-    stats: dict = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
-    print(stats)
+    location_times: dict[(str, int), LocationStats] = {}
+    get_location_times(save, location_times)
 
+    print(location_times)
     # path 1: get the optimal stats direclty here
     # path 2: output to timewise (local / web)
     # path 3: get a copy paste for timewise
@@ -82,9 +82,9 @@ def start():
     # todo extract logic from timewise
 
 
-def get_saves(save_text):
+def get_saves(save_text) -> tuple[dict, int]:
     parser = Slimjson()
-    parsed = parser.parse(save_text)
+    parsed: dict = parser.parse(save_text)
 
     i = 0
     while True:
@@ -119,6 +119,34 @@ def decrypt_save(progress_data):
     plaintext = bytes(decrypted[: len(decrypted) - padding]).decode("utf-8")
 
     return plaintext
+
+
+def get_location_times(save, location_times):
+    stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
+
+    for location in stats:
+        match = re.match(r"^([a-zA-Z_]+)(\d+)$", location["id"])
+
+        if match:
+            name, stars = match.groups()
+        else:
+            continue
+
+        loc_stats = LocationStats(
+            loc_id=location["id"],
+            name=name,
+            stars=int(stars),
+            bT=location["bT"],
+            aT=location["aT"],
+            aHl=location["aHl"],
+            aHg=location["aHg"],
+            net_hp=location["aHg"] - location["aHl"],
+            aKg=location["aKg"],
+            aXg=location["aXg"],
+            aRg=location["aRg"],
+            d=location["d"],
+        )
+        location_times[(name, stars)] = loc_stats
 
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt

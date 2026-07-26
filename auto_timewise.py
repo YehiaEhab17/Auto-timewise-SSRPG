@@ -28,35 +28,35 @@ def decrypt_save(progress_data):
     return plaintext
 
 def start():
+    global save 
+    
     print("hello!!!!!!! world!!!!!!!!")
     print(f"you use {platform.system()}")
+    # todo: add actual UX 
 
-    saves = get_steam_save()
+    saves = get_steam_path()
     selected = None
 
-    if len(saves) == 0:
+    if saves is None or len(saves) == 0:
         print("no saves found, input path?")
+        # todo: allow user to input path or paste the full save
 
     else:
-        while selected is None:
-            choice = input("choose a save (enter the number, defaults to the first one)").strip()
-            try:
-                selected = saves[int(choice)]
-            except (ValueError, IndexError):
-                selected = saves[0]
+        choice = input("choose a steam profile (enter the number, defaults to the first one)").strip()
 
-            with open(str(selected), "r") as f:
-                save_text = f.read()
+        try:
+            selected = saves[int(choice)]
+        except (ValueError, IndexError):
+            print("selecting the first steam profile")
+            selected = saves[0]
 
-            parser = Slimjson()
-            parsed = parser.parse(save_text)
-            progress_data_e = parsed["save_file_0"]["progress_data"]
-            progress_data_d = decrypt_save(progress_data_e)
-            parsed["save_file_0"]["progress_data"] = parser.parse(progress_data_d)
-            parsed["save_file_0"]["progress_data"]["encrypted"] = False
+        with open(str(selected), "r") as f:
+            save_text = f.read()
 
-            global save 
-            save = parsed
+        save, save_count = get_saves(save_text)
+        print(save)
+        print(save_count)
+
 
       
 
@@ -68,7 +68,7 @@ def start():
 # Linux: (your Steam install location for SSRPG)/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt
 # typical install location: ~/.local/share/Steam/steamapps/common/Stone Story RPG/
 #
-def get_steam_save():
+def get_steam_path():
     os_name = platform.system()
 
     if os_name == "Linux":
@@ -93,6 +93,25 @@ def get_steam_save():
         print(f"{save_files.index(save)+1}. found save at {save.absolute()}")
 
     return save_files
+
+def get_saves(save_text):
+    parser = Slimjson()
+    parsed = parser.parse(save_text)
+
+    i = 0
+    while True:
+        if f"save_file_{i}" not in parsed:
+            break
+        progress_data_e = parsed[f"save_file_{i}"]["progress_data"]
+        progress_data_d = decrypt_save(progress_data_e)
+
+        parsed[f"save_file_{i}"]["progress_data"] = parser.parse(progress_data_d)
+        parsed[f"save_file_{i}"]["progress_data"]["encrypted"] = False
+        i += 1
+
+    if i == 0:
+        print("no saves found for this steam profile")
+    return parsed, i 
 
 if __name__ == "__main__":
     start()

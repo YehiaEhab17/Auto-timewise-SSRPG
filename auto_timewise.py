@@ -44,13 +44,13 @@ def get_steam_save():
     os_name = platform.system()
 
     if os_name == "Linux":
-        TYPICAL = Path.home() / ".local/share/Steam/steamapps/common/Stone Story RPG/"
-        steam_path = TYPICAL / "Martian Rex, Inc_/Stone Story/"
+        TYPICAL = Path.home() / ".local/share/Steam/steamapps/common/Stone Story RPG"
+        steam_path = TYPICAL / "Martian Rex, Inc_/Stone Story"
 
     elif os_name == "Darwin": 
-        steam_path = Path.home() / "Library/Application Support/Martian Rex, Inc_/Stone Story/"
+        steam_path = Path.home() / "Library/Application Support/Martian Rex, Inc_/Stone Story"
     elif os_name == "Windows":
-        steam_path = Path.home() / "AppData/LocalLow/Martian Rex, Inc_/Stone Story/"
+        steam_path = Path.home() / "AppData/LocalLow/Martian Rex, Inc_/Stone Story"
     else:
         print(f"Unsupported operating system: {os_name}")
         return None
@@ -62,7 +62,7 @@ def get_steam_save():
     save_files = list(steam_path.glob("*/primary_save.txt"))
 
     for save in save_files:
-        print(f"found save at {save.absolute}")
+        print(f"found save at {save.absolute()}")
 
     return save_files
 

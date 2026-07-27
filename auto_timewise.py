@@ -8,16 +8,16 @@ from pathlib import Path
 import Rijndael
 from Slimjson import Slimjson
 
-LOCATIONS = {
-    "rocky_plateau": "Rocky Plateau",
-    "deadwood_valley": "Deadwood Canyon",
-    "caustic_caves": "Caves of Fear",
-    "fungus_forest": "Mushroom Forest",
-    "undead_crypt": "Haunted Halls",
-    "bronze_mine": "Boiling Mine",
-    "icy_ridge": "Icy Ridge",
-    "temple": "Temple",
-}
+# LOCATIONS = {
+#     "rocky_plateau": "Rocky Plateau",
+#     "deadwood_valley": "Deadwood Canyon",
+#     "caustic_caves": "Caves of Fear",
+#     "fungus_forest": "Mushroom Forest",
+#     "undead_crypt": "Haunted Halls",
+#     "bronze_mine": "Boiling Mine",
+#     "icy_ridge": "Icy Ridge",
+#     "temple": "Temple",
+# }
 
 
 # {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
@@ -71,10 +71,10 @@ def start():
 
     # todo: let them choose which save to proceed with
     print(save_count)
-    location_times: dict[tuple[str, int], LocationStats] = {}
-    get_location_times(save, location_times)
+    locations: dict[tuple[str, int], LocationStats] = {}
+    get_location_times(save, locations)
 
-    print(location_times)
+    print(locations)
     # path 1: get the optimal stats direclty here
     # path 2: output to timewise (local / web)
     # path 3: get a copy paste for timewise
@@ -121,7 +121,7 @@ def decrypt_save(progress_data):
     return plaintext
 
 
-def get_location_times(save, location_times):
+def get_location_times(save, locations):
     stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
 
     for location in stats:

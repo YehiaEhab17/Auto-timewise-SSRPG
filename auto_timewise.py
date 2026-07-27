@@ -132,21 +132,24 @@ def get_location_times(save, location_times):
         else:
             continue
 
+        aHg_val = location.get("aHg", 0.0)
+        aHl_val = location.get("aHl", 0.0)
+
         loc_stats = LocationStats(
             loc_id=location["id"],
             name=name,
             stars=int(stars),
-            bT=location["bT"],
-            aT=location["aT"],
-            aHl=location["aHl"],
-            aHg=location["aHg"],
-            net_hp=location["aHg"] - location["aHl"],
-            aKg=location["aKg"],
-            aXg=location["aXg"],
-            aRg=location["aRg"],
-            d=location["d"],
+            bT=location.get("bT", 0.0),
+            aT=location.get("aT", 0.0),
+            aHl=aHl_val,
+            aHg=aHg_val,
+            net_hp=aHg_val - aHl_val,
+            aKg=location.get("aKg", 0.0),
+            aXg=location.get("aXg", 0.0),
+            aRg=location.get("aRg", 0.0),
+            d=location.get("d", 0.0),
         )
-        location_times[(name, stars)] = loc_stats
+        locations[(name, stars)] = loc_stats
 
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt

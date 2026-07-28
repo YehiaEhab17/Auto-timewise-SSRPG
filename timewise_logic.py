@@ -131,4 +131,7 @@ def get_best_loc(offline_stats_dict: dict[tuple[str, int], LocOfflineStats]):
             max_rate = loc.enchant_rate
             best_loc = loc
 
+    if best_loc is None:
+        return
+
     return best_loc.name, best_loc.stars

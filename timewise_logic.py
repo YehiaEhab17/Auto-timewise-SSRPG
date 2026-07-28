@@ -27,7 +27,7 @@ def get_max_runs(loc: LocationStats, star_levels, player_level):
 
     chests = floor(guarantee * max_chests)
 
-    runs = min(chests + (runs_before_death * chests_per_run), 400)
+    runs = min(max(chests, runs_before_death * chests_per_run), 400)
 
     return runs
 

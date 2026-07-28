@@ -16,7 +16,7 @@ def get_location_times(stats, locations):
         aHg_val = location.get("aHg", 0.0)
         aHl_val = location.get("aHl", 0.0)
 
-        loc_stats = LocationStats(
+        loc_stats = PlayerStats_loc(
             loc_id=location["id"],
             name=name,
             stars=int(stars),
@@ -33,7 +33,7 @@ def get_location_times(stats, locations):
         locations[(name, int(stars))] = loc_stats
 
 
-def get_max_runs(loc: LocationStats, star_levels, player_level):
+def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
 
     max_unlocked = star_levels[loc.name]
     star_diff = max_unlocked - loc.stars

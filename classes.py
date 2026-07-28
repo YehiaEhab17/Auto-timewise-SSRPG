@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 # {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
 @dataclass
-class LocationStats:
+class LocPlayerStats:
     loc_id: str  # loc id e.g caustic_caves3
     name: str
     stars: int

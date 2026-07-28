@@ -16,7 +16,7 @@ def get_location_times(stats, locations):
         aHg_val = location.get("aHg", 0.0)
         aHl_val = location.get("aHl", 0.0)
 
-        loc_stats = LocOfflineStats(
+        loc_stats = LocPlayerStats(
             loc_id=location["id"],
             name=name,
             stars=int(stars),

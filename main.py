@@ -1,7 +1,6 @@
 import location_data
-from classes import PlayerStats_loc
 from saves import get_saves
-from timewise_logic import get_completion_time, get_location_times, get_max_runs
+from timewise_logic import get_best_loc, get_location_times, get_offline_stats
 
 # LOCATIONS = {
 #     "rocky_plateau": "Rocky Plateau",
@@ -16,42 +15,33 @@ from timewise_logic import get_completion_time, get_location_times, get_max_runs
 
 
 def start():
-    save: dict = get_saves()
-
+    save, _save_count = get_saves()
     # todo: add actual UX
 
     # todo: let them choose which save to proceed with
-    locations: dict[tuple[str, int], PlayerStats_loc] = {}
-
-    # testing stuff wont be there in final
-    stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
-
-    star_levels: list = save["save_file_0"]["progress_data"]["quest_data"][
-        "star_levels"
-    ]
-
-    player_level = save["save_file_0"]["player_level"]
-    # ----------------
-
-    get_location_times(stats, locations)
-
-    # more test
-    runs = get_max_runs(locations["icy_ridge", 15], star_levels, player_level)
-    print(runs)
-    print(get_completion_time(locations["icy_ridge", 15].aT, runs))
-    print(get_completion_time(locations["icy_ridge", 15].bT, runs))
-    # --------------
 
     # path 1: get the optimal stats direclty here
     location_values = location_data.get_location_values()
-
     if location_values is None:
         print(
             "wasnt able to find the location values to calculate optimal location. want to do anything else with your save?"
         )
     else:
-        pass
+        stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
 
+        locations = get_location_times(stats)
+
+        star_levels: list = save["save_file_0"]["progress_data"]["quest_data"][
+            "star_levels"
+        ]
+        player_level = save["save_file_0"]["player_level"]
+
+        offline_stats = get_offline_stats(
+            locations, location_values, star_levels, player_level
+        )
+
+        best = get_best_loc(offline_stats)
+        print(f"your best location is: {best}")
     # path 2: output to timewise (local / web)
 
     # path 3: get a copy paste for timewise

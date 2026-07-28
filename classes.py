@@ -17,3 +17,18 @@ class LocPlayerStats:
     aRg: float  # average resource gain
     d: float  # damage?
     # todo: maybe implement stuff for eent resources
+
+
+@dataclass
+class LocOfflineStats:
+    loc_id: str
+    name: str
+    stars: int
+    bT: float  # frames
+    aT: float  # frames
+    completed_in: float  # seconds
+    loops: int
+    chests_per_run: int
+    value_per_clear: float  # from chest rates
+    enchant_rate: float  # calculated based on speed
+    # todo: later stuff for emerald eggs, event resources, etc. things ppl might want

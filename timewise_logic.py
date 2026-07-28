@@ -1,6 +1,36 @@
+import re
 from math import floor
 
 from classes import LocationStats
+
+
+def get_location_times(stats, locations):
+    for location in stats:
+        match = re.match(r"^([a-zA-Z_]+)(\d+)$", location["id"])
+
+        if match:
+            name, stars = match.groups()
+        else:
+            continue
+
+        aHg_val = location.get("aHg", 0.0)
+        aHl_val = location.get("aHl", 0.0)
+
+        loc_stats = LocationStats(
+            loc_id=location["id"],
+            name=name,
+            stars=int(stars),
+            bT=location.get("bT", 0.0),
+            aT=location.get("aT", 0.0),
+            aHl=aHl_val,
+            aHg=aHg_val,
+            net_hp=aHg_val - aHl_val,
+            aKg=location.get("aKg", 0.0),
+            aXg=location.get("aXg", 0.0),
+            aRg=location.get("aRg", 0.0),
+            d=location.get("d", 0.0),
+        )
+        locations[(name, int(stars))] = loc_stats
 
 
 def get_max_runs(loc: LocationStats, star_levels, player_level):

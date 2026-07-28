@@ -4,7 +4,9 @@ from math import floor
 from classes import LocOfflineStats, LocPlayerStats
 
 
-def get_location_times(stats, locations):
+def get_location_times(stats):
+    locations: dict[tuple[str, int], LocPlayerStats] = {}
+
     for location in stats:
         match = re.match(r"^([a-zA-Z_]+)(\d+)$", location["id"])
 
@@ -31,6 +33,7 @@ def get_location_times(stats, locations):
             d=location.get("d", 0.0),
         )
         locations[(name, int(stars))] = loc_stats
+    return locations
 
 
 def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
@@ -84,5 +87,48 @@ def get_chests_per_run(loc):
     # event logic too
 
 
-def get_offline_stats(player_stats, location_values):
-    pass
+def get_offline_stats(locations, location_values, star_levels, player_level):
+    offline_stats_dict: dict[tuple[str, int], LocOfflineStats] = {}
+
+    for loc in locations.values():
+        if loc.stars < 5:
+            continue  # chest rates only support 5* and up (and why would u offline 3* :p)
+
+        loc_id = loc.loc_id
+        bT = loc.bT
+        aT = loc.aT
+
+        loops = get_max_runs(loc, star_levels, player_level)
+        completed_in = get_completion_time(aT, loops)
+        completed_in_best = get_completion_time(bT, loops)
+
+        value_per_clear = location_values[loc_id]
+        enchant_rate = (value_per_clear * loops) / (completed_in / 30)
+
+        offline_stats = LocOfflineStats(
+            loc_id=loc_id,
+            name=loc.name,
+            stars=loc.stars,
+            bT=bT,
+            aT=aT,
+            completed_in=completed_in,
+            completed_in_best=completed_in_best,
+            loops=loops,
+            chests_per_run=get_chests_per_run(loc),
+            value_per_clear=value_per_clear,
+            enchant_rate=enchant_rate,
+        )
+        offline_stats_dict[loc.name, int(loc.stars)] = offline_stats
+
+    return offline_stats_dict
+
+
+def get_best_loc(offline_stats_dict: dict[tuple[str, int], LocOfflineStats]):
+    max_rate = 0
+    best_loc = None
+    for loc in offline_stats_dict.values():
+        if loc.enchant_rate > max_rate:
+            max_rate = loc.enchant_rate
+            best_loc = loc
+
+    return best_loc.name, best_loc.stars

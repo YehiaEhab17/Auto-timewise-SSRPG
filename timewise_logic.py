@@ -1,7 +1,7 @@
 import re
 from math import floor
 
-from classes import LocationStats
+from classes import LocOfflineStats, LocPlayerStats
 
 
 def get_location_times(stats, locations):
@@ -16,7 +16,7 @@ def get_location_times(stats, locations):
         aHg_val = location.get("aHg", 0.0)
         aHl_val = location.get("aHl", 0.0)
 
-        loc_stats = PlayerStats_loc(
+        loc_stats = LocOfflineStats(
             loc_id=location["id"],
             name=name,
             stars=int(stars),
@@ -66,16 +66,13 @@ def get_completion_time(time, loops, chests_per_run=1):
     OROBOROUS_FRAMES = 118
     CHEST_FRAMES = 36
 
-    time_seconds = time / 30
     treasures = loops * chests_per_run
 
-    total_seconds = (
-        time_seconds * loops
-        + (OROBOROUS_FRAMES / 30) * (loops - 1)
-        + (CHEST_FRAMES / 30) * treasures
+    total_frames = (
+        (time * loops) + (OROBOROUS_FRAMES * (loops - 1)) + (CHEST_FRAMES * treasures)
     )
 
-    return total_seconds
+    return total_frames
 
 
 def get_chests_per_run(loc):
@@ -85,3 +82,7 @@ def get_chests_per_run(loc):
         return 1
 
     # event logic too
+
+
+def get_offline_stats(player_stats, location_values):
+    pass

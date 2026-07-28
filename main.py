@@ -2,11 +2,14 @@ import base64
 import hashlib
 import platform
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
+import location_data
 import Rijndael
+from classes import LocationStats
+from location_data import get_location_values
 from Slimjson import Slimjson
+from timewise_logic import get_completion_time, get_max_runs
 
 # LOCATIONS = {
 #     "rocky_plateau": "Rocky Plateau",
@@ -20,29 +23,9 @@ from Slimjson import Slimjson
 # }
 
 
-# {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
-@dataclass
-class LocationStats:
-    loc_id: str  # loc id e.g caustic_caves3
-    name: str
-    stars: int
-    bT: float  # best time in frames
-    aT: float  # average time in frames
-    aHl: float  # average health lost
-    aHg: float  # average health gain
-    net_hp: float
-    aKg: float  # average ki gain
-    aXg: float  # average xp gain?
-    aRg: float  # average resource gain
-    d: float  # damage?
-    # todo: maybe implement stuff for eent resources
-
-
 def start():
     save: dict
 
-    print("hello!!!!!!! world!!!!!!!!")
-    print(f"you use {platform.system()}")
     # todo: add actual UX
 
     saves = get_steam_path()
@@ -67,19 +50,35 @@ def start():
         with open(str(selected), "r") as f:
             save_text = f.read()
 
-        save, save_count = get_saves(save_text)
+        save, _save_count = get_saves(save_text)
 
     # todo: let them choose which save to proceed with
-    print(save_count)
     locations: dict[tuple[str, int], LocationStats] = {}
-    get_location_times(save, locations)
+    stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
+    star_levels: list = save["save_file_0"]["progress_data"]["quest_data"][
+        "star_levels"
+    ]
+    player_level = save["save_file_0"]["player_level"]
+    get_location_times(stats, locations)
 
-    print(locations)
+    runs = get_max_runs(locations["icy_ridge", 15], star_levels, player_level)
+    print(runs)
+    print(get_completion_time(locations["icy_ridge", 15].aT, runs))
+    print(get_completion_time(locations["icy_ridge", 15].bT, runs))
+
     # path 1: get the optimal stats direclty here
-    # path 2: output to timewise (local / web)
-    # path 3: get a copy paste for timewise
+    location_values = location_data.get_location_values()
 
-    # todo extract logic from timewise
+    if location_values is None:
+        print(
+            "wasnt able to find the location values to calculate optimal location. want to do anything else with your save?"
+        )
+    else:
+        pass
+
+    # path 2: output to timewise (local / web)
+
+    # path 3: get a copy paste for timewise
 
 
 def get_saves(save_text) -> tuple[dict, int]:
@@ -121,9 +120,7 @@ def decrypt_save(progress_data):
     return plaintext
 
 
-def get_location_times(save, locations):
-    stats: list = save["save_file_0"]["progress_data"]["quest_data"]["stats"]
-
+def get_location_times(stats, locations):
     for location in stats:
         match = re.match(r"^([a-zA-Z_]+)(\d+)$", location["id"])
 
@@ -149,7 +146,7 @@ def get_location_times(save, locations):
             aRg=location.get("aRg", 0.0),
             d=location.get("d", 0.0),
         )
-        locations[(name, stars)] = loc_stats
+        locations[(name, int(stars))] = loc_stats
 
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt

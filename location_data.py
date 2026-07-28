@@ -40,7 +40,7 @@ def load_from_xlsx(sheet_path):
 def load_from_json(json_path):
     try:
         with open(json_path, "r") as f:
-            loaded = json.load(f)
+            loaded: dict[str, float] = json.load(f)
             return loaded
     except FileNotFoundError:
         print("file doesn't exist")

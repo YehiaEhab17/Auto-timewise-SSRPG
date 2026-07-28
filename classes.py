@@ -26,7 +26,8 @@ class LocOfflineStats:
     stars: int
     bT: float  # frames
     aT: float  # frames
-    completed_in: float  # seconds
+    completed_in: float  # frames
+    completed_in_best: float  # frames
     loops: int
     chests_per_run: int
     value_per_clear: float  # from chest rates

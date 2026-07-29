@@ -28,6 +28,7 @@ class LocOfflineStats:
     aT: float  # frames
     completed_in: float  # frames
     completed_in_best: float  # frames
+    ends_in_death: bool
     loops: int
     chests_per_run: int
     value_per_clear: float  # from chest rates

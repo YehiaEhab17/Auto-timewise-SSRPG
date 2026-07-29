@@ -69,5 +69,8 @@ def get_location_values():
         except ImportError:
             print("openpyxl not found, try installing")
 
-    print("sheet not found, using cache")
+    else:
+        print("chest_rates.xlsx sheet not found")
+
+    print("could not use xlsx sheet, using cache")
     return load_from_json(json_path)

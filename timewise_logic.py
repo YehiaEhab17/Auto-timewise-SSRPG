@@ -58,7 +58,7 @@ def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
     else:
         runs_before_death = max_hp // abs(loc.net_hp)
 
-    chests = floor(guarantee * max_chests)
+    chests = round(guarantee * max_chests)
 
     runs = min(max(chests, runs_before_death * chests_per_run), 400)
 
@@ -99,8 +99,10 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
         aT = loc.aT
 
         loops = get_max_runs(loc, star_levels, player_level)
-        completed_in = get_completion_time(aT, loops)
-        completed_in_best = get_completion_time(bT, loops)
+        ends_in_death = loops != 100 + 5 * player_level
+        chests_per_run = get_chests_per_run(loc)
+        completed_in = get_completion_time(aT, loops, chests_per_run)
+        completed_in_best = get_completion_time(bT, loops, chests_per_run)
 
         value_per_clear = location_values[loc_id]
         enchant_rate = (value_per_clear * loops) / (completed_in / 30)
@@ -113,6 +115,7 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
             aT=aT,
             completed_in=completed_in,
             completed_in_best=completed_in_best,
+            ends_in_death=ends_in_death,
             loops=loops,
             chests_per_run=get_chests_per_run(loc),
             value_per_clear=value_per_clear,
@@ -135,3 +138,50 @@ def get_best_loc(offline_stats_dict: dict[tuple[str, int], LocOfflineStats]):
         return
 
     return best_loc.name, best_loc.stars
+
+
+def get_completion_time_table(
+    offline_stats_dict: dict[tuple[str, int], LocOfflineStats],
+    include_deaths: bool = False,
+):
+    LOCATIONS = {
+        "rocky_plateau": 1,
+        "deadwood_valley": 2,
+        "caustic_caves": 3,
+        "fungus_forest": 4,
+        "undead_crypt": 5,
+        "bronze_mine": 6,
+        "icy_ridge": 7,
+        "temple": 8,
+    }
+
+    completion_time_table = [["" for _ in range(32)] for _ in range(8)]
+
+    # row, col : hour, min
+    for (name, stars), stats in offline_stats_dict.items():
+        if stats.ends_in_death and not include_deaths:
+            continue
+        hours, minutes = get_timewise_formatted_time(stats.completed_in)
+        col = (stars - 5) * 2
+        completion_time_table[LOCATIONS[name] - 1][col] = hours
+        completion_time_table[LOCATIONS[name] - 1][col + 1] = minutes
+
+    return format_table(completion_time_table)
+
+
+def get_timewise_formatted_time(frames):
+    total_seconds = frames // 30
+    total_minutes = total_seconds // 60
+
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+
+    return hours, minutes
+
+
+def format_table(table):
+    lines = []
+    for row in table:
+        cells = [str(cell) for cell in row]
+        lines.append("\t".join(cells))
+    return "\n".join(lines)

@@ -1,6 +1,11 @@
 import location_data
 from saves import get_saves
-from timewise_logic import get_best_loc, get_location_times, get_offline_stats
+from timewise_logic import (
+    get_best_loc,
+    get_completion_time_table,
+    get_location_times,
+    get_offline_stats,
+)
 
 # LOCATIONS = {
 #     "rocky_plateau": "Rocky Plateau",
@@ -42,6 +47,10 @@ def start():
 
         best = get_best_loc(offline_stats)
         print(f"your best location is: {best}")
+
+        table = get_completion_time_table(offline_stats, True)
+        with open("completion_times.tsv", "w", encoding="utf-8") as f:
+            f.write(table)
     # path 2: output to timewise (local / web)
 
     # path 3: get a copy paste for timewise

@@ -1,5 +1,4 @@
 import re
-from math import floor
 
 from classes import LocOfflineStats, LocPlayerStats
 

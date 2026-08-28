@@ -5,33 +5,55 @@ from pathlib import Path
 
 import Rijndael
 from Slimjson import Slimjson
+from util import choose_number
 
 
-def get_saves():
+def get_save():
     steam_profiles = get_steam_path()
     selected = None
+    source: bool = choose_number(
+        message="1. steam save\n2. manual path \n3. save file text \n(default is steam save)",
+        retry=False,
+        default=1,
+        max=3,
+    )
+    if source == 1:
+        if len(steam_profiles) != 0:
+            choice = choose_number(
+                message="choose a steam profile (enter the number, defaults to the first one",
+                retry=False,
+                default=0,
+                max=len(steam_profiles),
+            )
 
-    if len(steam_profiles) == 0:
-        print("no saves found, input path?")
-        return
-        # todo: allow user to input path or paste the full save
+            selected = steam_profiles[choice]
 
-    else:
-        choice = input(
-            "choose a steam profile (enter the number, defaults to the first one)"
-        ).strip()
+            with open(str(selected), "r") as f:
+                save_text = f.read()
 
-        try:
-            selected = steam_profiles[int(choice)]
-        except (ValueError, IndexError):
-            print("selecting the first steam profile")
-            selected = steam_profiles[0]
-
-        with open(str(selected), "r") as f:
+        else:
+            print("no saves (steam profile) found, input path or save?")
+            # TODO: IMPLEMENT THIS
+    elif source == 2:
+        path: Path = input("enter the path manually")
+        with open(str(path), "r") as f:
             save_text = f.read()
+    elif source == 3:
+        pass
+        # TODO IMPLEMENT THIS
 
-        saves, save_count = parse_saves(save_text)
-        return saves, save_count
+    saves, save_count = parse_saves(save_text)
+
+    for i in range(save_count):
+        print(f"{i}. {saves[f'save_file_{i}']['player_name']} ")
+    chosen_player = choose_number(
+        message="select the player you would like to view the stats for (defaults to first)",
+        retry=False,
+        default=0,
+        max=save_count,
+    )
+
+    return saves[f"save_file_{chosen_player}"]
 
 
 def parse_saves(save_text) -> tuple[dict, int]:

@@ -48,7 +48,7 @@ def load_from_json(json_path):
         print("file exists but isn't valid JSON")
 
 
-# todo: maybe later we add emerald egg chances / other rates too
+# TODO: maybe later we add emerald egg chances / other rates too
 
 
 def save_json(json_path, data):

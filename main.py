@@ -51,9 +51,6 @@ def start():
         table = get_completion_time_table(offline_stats, True)
         with open("completion_times.tsv", "w", encoding="utf-8") as f:
             f.write(table)
-    # path 2: output to timewise (local / web)
-
-    # path 3: get a copy paste for timewise
 
 
 if __name__ == "__main__":

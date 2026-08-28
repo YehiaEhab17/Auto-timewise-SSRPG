@@ -16,7 +16,7 @@ class LocPlayerStats:
     aXg: float  # average xp gain?
     aRg: float  # average resource gain
     d: float  # damage?
-    # todo: maybe implement stuff for eent resources
+    # TODO: maybe implement stuff for eent resources
 
 
 @dataclass
@@ -33,4 +33,4 @@ class LocOfflineStats:
     chests_per_run: int
     value_per_clear: float  # from chest rates
     enchant_rate: float  # calculated based on speed
-    # todo: later stuff for emerald eggs, event resources, etc. things ppl might want
+    # TODO: later stuff for emerald eggs, event resources, etc. things ppl might want

@@ -41,7 +41,8 @@ def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
     star_diff = max_unlocked - loc.stars
     max_hp = player_level + 20
     max_chests = player_level * 5 + 100
-    # todo : check also current amount of chests
+    # TODO : check also current amount of chests
+    # TODO: potions affect
 
     guarantee = 0
     if star_diff >= 3:
@@ -103,7 +104,7 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
         completed_in = get_completion_time(aT, loops, chests_per_run)
         completed_in_best = get_completion_time(bT, loops, chests_per_run)
 
-        value_per_clear = location_values[loc_id]
+        value_per_clear = location_values[loc_id]  # TODO SHOULDNT CRASH ON UNKNOWN LOCS
         enchant_rate = (value_per_clear * loops) / (completed_in / 30)
 
         offline_stats = LocOfflineStats(

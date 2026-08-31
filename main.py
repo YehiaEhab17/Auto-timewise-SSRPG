@@ -24,14 +24,18 @@ def start():
     print(
         """
 ============================================================================
-Hello and welcome to Timesage! to get started, choose a save file to analyze
+Hello and welcome to the sundial! to get started, choose a save file to analyze
 (Note: Pressing "enter" or an invalid input defaults to the first option).
 ============================================================================"""
     )
     save = get_save()
     # TODO: add actual UX
+
+    # TODO : debug mode stuff to see your save
     # with open("save_dump.json", "w", encoding="utf-8") as f:
     #     json.dump(save, f, indent=2)
+
+    # TODO: allow the player to choose
     # path 1: get the optimal stats direclty here
     location_values = location_data.get_location_values()
     if location_values is None:
@@ -51,15 +55,17 @@ Hello and welcome to Timesage! to get started, choose a save file to analyze
         )
 
         best = get_best_loc(offline_stats)
+
         if best is None:
             print(
                 "Somehow, some way, you have no location that is possible to offline. Get good?"
             )
         else:
             print(f"your best location is: {LOCATIONS[best[0]]} with {best[1]} stars")
+            # TODO: better formatting lol
 
         # path 2: output to timewise (local / web)
-
+        # TODO implement this
         # path 3: get a copy paste for timewise
         table = get_completion_time_table(offline_stats, True)
         with open("completion_times.tsv", "w", encoding="utf-8") as f:

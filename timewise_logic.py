@@ -83,7 +83,7 @@ def get_chests_per_run(loc):
     else:
         return 1
 
-    # event logic too
+    # TODO: event logic too
 
 
 def get_offline_stats(locations, location_values, star_levels, player_level):

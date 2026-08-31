@@ -10,3 +10,6 @@ checking net hp, level, chests, etc
 best place to farm event resources
 x clears until y enchants table
 emerald eggs too!
+
+maybe add more save file utils
+(save editing maybe?)

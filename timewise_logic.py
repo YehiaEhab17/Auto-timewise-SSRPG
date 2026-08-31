@@ -106,7 +106,7 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
         if loc_id not in location_values:
             print(f"skipping {loc_id}")
             continue
-        value_per_clear = location_values[loc_id]  # TODO SHOULDNT CRASH ON UNKNOWN LOCS
+        value_per_clear = location_values[loc_id]
         enchant_rate = (value_per_clear * loops) / (completed_in / 30)
 
         offline_stats = LocOfflineStats(
@@ -119,7 +119,7 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
             completed_in_best=completed_in_best,
             ends_in_death=ends_in_death,
             loops=loops,
-            chests_per_run=get_chests_per_run(loc),
+            chests_per_run=chests_per_run,
             value_per_clear=value_per_clear,
             enchant_rate=enchant_rate,
         )

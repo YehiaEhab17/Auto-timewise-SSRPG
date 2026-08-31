@@ -1,5 +1,4 @@
 import location_data
-import json
 from saves import get_save
 from timewise_logic import (
     get_best_loc,
@@ -8,24 +7,31 @@ from timewise_logic import (
     get_offline_stats,
 )
 
-# LOCATIONS = {
-#     "rocky_plateau": "Rocky Plateau",
-#     "deadwood_valley": "Deadwood Canyon",
-#     "caustic_caves": "Caves of Fear",
-#     "fungus_forest": "Mushroom Forest",
-#     "undead_crypt": "Haunted Halls",
-#     "bronze_mine": "Boiling Mine",
-#     "icy_ridge": "Icy Ridge",
-#     "temple": "Temple",
-# }
+LOCATIONS = {
+    "rocky_plateau": "Rocky Plateau",
+    "deadwood_valley": "Deadwood Canyon",
+    "caustic_caves": "Caves of Fear",
+    "fungus_forest": "Mushroom Forest",
+    "undead_crypt": "Haunted Halls",
+    "bronze_mine": "Boiling Mine",
+    "icy_ridge": "Icy Ridge",
+    "temple": "Temple",
+}
 
 
 def start():
+
+    print(
+        """
+============================================================================
+Hello and welcome to Timesage! to get started, choose a save file to analyze
+(Note: Pressing "enter" or an invalid input defaults to the first option).
+============================================================================"""
+    )
     save = get_save()
     # TODO: add actual UX
-    print(save)
-    with open("save_dump.json", "w", encoding="utf-8") as f:
-        json.dump(save, f, indent=2)
+    # with open("save_dump.json", "w", encoding="utf-8") as f:
+    #     json.dump(save, f, indent=2)
     # path 1: get the optimal stats direclty here
     location_values = location_data.get_location_values()
     if location_values is None:
@@ -45,7 +51,12 @@ def start():
         )
 
         best = get_best_loc(offline_stats)
-        print(f"your best location is: {best}")
+        if best is None:
+            print(
+                "Somehow, some way, you have no location that is possible to offline. Get good?"
+            )
+        else:
+            print(f"your best location is: {LOCATIONS[best[0]]} with {best[1]} stars")
 
         # path 2: output to timewise (local / web)
 

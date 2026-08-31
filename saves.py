@@ -2,6 +2,7 @@ import base64
 import hashlib
 import platform
 from pathlib import Path
+import sys
 
 import Rijndael
 from Slimjson import Slimjson
@@ -9,51 +10,64 @@ from util import choose_number
 
 
 def get_save():
-    steam_profiles = get_steam_path()
     selected = None
-    source: bool = choose_number(
-        message="1. steam save\n2. manual path \n3. save file text \n(default is steam save)",
+    source: int = choose_number(
+        message="1. Get saves from Steam profiles \n2. Enter a path manually \n3. Paste save file text\n",
         retry=False,
         default=1,
         max=3,
     )
     if source == 1:
+        steam_profiles = get_steam_path()
         if len(steam_profiles) != 0:
             choice = choose_number(
-                message="choose a steam profile (enter the number, defaults to the first one",
+                message="Which one do you want to proceed with? ",
                 retry=False,
-                default=0,
+                default=1,
                 max=len(steam_profiles),
             )
 
-            selected = steam_profiles[choice]
+            selected = steam_profiles[choice - 1]
 
             with open(str(selected), "r") as f:
                 save_text = f.read()
 
         else:
-            print("no saves (steam profile) found, input path or save?")
-            # TODO: IMPLEMENT THIS
-    elif source == 2:
-        path: Path = input("enter the path manually")
+            print("No Steam profiles found.")
+            source: int = choose_number(
+                message="No Steam profiles found\n 1. Exit \n2. Enter a path manually \n3. Paste save file text\n",
+                retry=False,
+                default=1,
+                max=3,
+            )
+            if source == 1:
+                sys.exit()
+
+    if source == 2:
+        path: str = input("enter the path manually\n")
         with open(str(path), "r") as f:
             save_text = f.read()
-    elif source == 3:
-        pass
-        # TODO IMPLEMENT THIS
+    if source == 3:
+        save_text = input("paste the save file text here\n")
 
     saves, save_count = parse_saves(save_text)
 
+    print(
+        """
+============================
+Found the following players:"""
+    )
     for i in range(save_count):
-        print(f"{i}. {saves[f'save_file_{i}']['player_name']} ")
+        print(f"{i + 1}. {saves[f'save_file_{i}']['player_name']} ")
+
     chosen_player = choose_number(
-        message="select the player you would like to view the stats for (defaults to first)",
+        message="Select the player you would like to view the stats for:",
         retry=False,
-        default=0,
+        default=1,
         max=save_count,
     )
 
-    return saves[f"save_file_{chosen_player}"]
+    return saves[f"save_file_{chosen_player - 1}"]
 
 
 def parse_saves(save_text) -> tuple[dict, int]:
@@ -72,7 +86,7 @@ def parse_saves(save_text) -> tuple[dict, int]:
         i += 1
 
     if i == 0:
-        print("no saves found for this steam profile")
+        print("no saves found for this Steam profile")
     return parsed, i
 
 
@@ -120,12 +134,16 @@ def get_steam_path():
         return []
 
     if not steam_path.exists():
-        print("save directory not found")
+        print("Save directory not found")
         return []
 
     save_files = list(steam_path.glob("*/primary_save.txt"))
 
+    print("""
+===================================
+Found the following Steam profiles:""")
+
     for save in save_files:
-        print(f"{save_files.index(save) + 1}. found save at {save.absolute()}")
+        print(f"{save_files.index(save) + 1}. {save.absolute()}")
 
     return save_files

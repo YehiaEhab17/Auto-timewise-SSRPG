@@ -109,6 +109,7 @@ def get_offline_stats(
             continue
         value_per_clear = location_values[loc_id]
         enchant_rate = (value_per_clear * loops) / (completed_in / 30)
+        enchant_rate_best = (value_per_clear * loops) / (completed_in_best / 30)
 
         offline_stats = LocOfflineStats(
             loc_id=loc_id,
@@ -123,24 +124,21 @@ def get_offline_stats(
             chests_per_run=chests_per_run,
             value_per_clear=value_per_clear,
             enchant_rate=enchant_rate,
+            enchant_rate_best=enchant_rate_best,
         )
         offline_stats_dict[loc.name, int(loc.stars)] = offline_stats
 
     return offline_stats_dict
 
 
-def get_best_loc(offline_stats_dict: dict[tuple[str, int], LocOfflineStats]):
-    max_rate = 0
-    best_loc = None
-    for loc in offline_stats_dict.values():
-        if loc.enchant_rate > max_rate:
-            max_rate = loc.enchant_rate
-            best_loc = loc
-
-    if best_loc is None:
-        return
-
-    return best_loc.name, best_loc.stars
+def sort_locs_by_rate(
+    offline_stats_dict: dict[tuple[str, int], LocOfflineStats], best: bool
+):
+    return sorted(
+        offline_stats_dict.values(),
+        key=lambda loc: loc.enchant_rate if not best else loc.enchant_rate_best,
+        reverse=True,
+    )
 
 
 def get_completion_time_table(

@@ -14,7 +14,7 @@ def get_save():
         message="1. Get saves from Steam profiles \n2. Enter a path manually \n3. Paste save file text\n",
         retry=False,
         default=1,
-        max=3,
+        max_val=3,
     )
     if source == 1:
         steam_profiles = get_steam_path()
@@ -23,7 +23,7 @@ def get_save():
                 message="Which one do you want to proceed with? ",
                 retry=False,
                 default=1,
-                max=len(steam_profiles),
+                max_val=len(steam_profiles),
             )
 
             selected = steam_profiles[choice - 1]
@@ -37,7 +37,7 @@ def get_save():
                 message="No Steam profiles found\n 1. Exit \n2. Enter a path manually \n3. Paste save file text\n",
                 retry=False,
                 default=1,
-                max=3,
+                max_val=3,
             )
             if source == 1:
                 sys.exit()
@@ -63,7 +63,7 @@ Found the following players:"""
         message="Select the player you would like to view the stats for: ",
         retry=False,
         default=1,
-        max=save_count,
+        max_val=save_count,
     )
 
     return saves[f"save_file_{chosen_player - 1}"]

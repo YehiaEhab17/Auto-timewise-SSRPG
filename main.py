@@ -2,12 +2,13 @@ import location_data
 from classes import EVENT_LOCATIONS, LOCATION_INDEX, LOCATION_NAMES
 from saves import get_save
 from timewise_logic import (
-    get_best_loc,
+    sort_locs_by_rate,
     get_completion_time_table,
     get_location_times,
     get_offline_stats,
+    get_timewise_formatted_time,
 )
-from util import choose_number
+from util import choose_number, copy_to_clipboard, parse_afk_time
 
 
 def start():
@@ -26,7 +27,6 @@ Hello and welcome to the sundial! to get started, choose a save file to analyze
     # with open("save_dump.json", "w", encoding="utf-8") as f:
     #     json.dump(save, f, indent=2)
 
-    # TODO: allow the player to choose
     # path 1: get the optimal stats direclty here
     location_values = location_data.get_location_values()
     if location_values is None:
@@ -81,7 +81,7 @@ Choose a location to apply event bonus to:
 """,
                     retry=False,
                     default=0,
-                    max=8,
+                    max_val=8,
                 )
 
                 LOC_INDEX_REV = {v: k for k, v in LOCATION_INDEX.items()}
@@ -93,24 +93,94 @@ Choose a location to apply event bonus to:
             locations, location_values, star_levels, player_level, active_event_loc
         )
 
-        best = get_best_loc(offline_stats)
+        sorted_avg = sort_locs_by_rate(offline_stats, False)
+        sorted_best = sort_locs_by_rate(offline_stats, True)
 
-        if best is None:
+        if not sorted_avg:
             print(
                 "Somehow, some way, you have no location that is possible to offline. Get good?"
             )
         else:
-            print(
-                f"your best location is: {LOCATION_NAMES[best[0]]} with {best[1]} stars"
-            )
-            # TODO: better formatting lol
+            best = sorted_avg[0]
+            best_bt = sorted_best[0]
+
+            readable_time = get_timewise_formatted_time(best.completed_in)
+            readable_time_bt = get_timewise_formatted_time(best.completed_in_best)
+
+            print("""
+=============================================================================
+How long will you AFK for? 
+(format as HH:MM, enter 0 to get the best location generally)
+""")
+            afk_time_str = input("AFK time: ")
+            afk_time = parse_afk_time(afk_time_str)
+            best_afk = None
+            if afk_time:
+                lowest = None
+                for loc in sorted_avg:
+                    if lowest is None or loc.completed_in < lowest.completed_in:
+                        lowest = loc
+                    if loc.completed_in > afk_time * 30:
+                        continue
+                    best_afk = loc
+                    break
+                if best_afk is None:
+                    best_afk = lowest
+
+            print(f"""
+=============================================================================
+Based on your average times, your best location is: {LOCATION_NAMES[best.name]} with {best.stars} stars
+Your run will complete in {readable_time[0]:.0f}h{readable_time[1]:.0f}m, with a rate of 1 enchant point per {1 / best.enchant_rate:.2f} seconds
+{"your run ends in death" if best.ends_in_death else "your run does not end in death"}
+
+Based on your best times, your best location is: {LOCATION_NAMES[best_bt.name]} with {best_bt.stars} stars
+Your run will complete in {readable_time_bt[0]:.0f}h{readable_time_bt[1]:.0f}m, with a rate of 1 enchant point per {1 / best_bt.enchant_rate_best:.2f} seconds
+{"your run ends in death" if best_bt.ends_in_death else "your run does not end in death"}""")
+
+            if best_afk:
+                readable_time_afk = get_timewise_formatted_time(best_afk.completed_in)
+                print(f"""
+=============================================================================
+Based on your AFK time ({afk_time_str}), your best location is: {LOCATION_NAMES[best_afk.name]} with {best_afk.stars} stars
+Your run will complete in {readable_time_afk[0]:.0f}h{readable_time_afk[1]:.0f}m, with a rate of 1 enchant point per {1 / best_afk.enchant_rate:.2f} seconds
+{"your run ends in death" if best_afk.ends_in_death else "your run does not end in death"}
+=============================================================================
+""")
+
+            print("""
+=============================================================================
+Top 5 locations based on best times (targets for optimisation):""")
+            for i in range(min(5, len(sorted_best))):
+                loc = sorted_best[i]
+                readable_time = get_timewise_formatted_time(loc.completed_in_best)
+                print(
+                    f"{i + 1}. {LOCATION_NAMES[loc.name]}: {loc.stars}*. {readable_time[0]:.0f}h{readable_time[1]:.0f}m {'(death)' if loc.ends_in_death else ''}. {1 / loc.enchant_rate_best:.2f}s for 1EP"
+                )
 
         # path 2: output to timewise (local / web)
         # TODO implement this
+
         # path 3: get a copy paste for timewise
-        table = get_completion_time_table(offline_stats, True)
-        with open("completion_times.tsv", "w", encoding="utf-8") as f:
-            f.write(table)
+        if (
+            input(
+                """
+=============================================================================
+Do you want to copy the completion times to your clipboard (to paste into timewise)? (y/N): """
+            )
+            == "y"
+        ):
+            table = get_completion_time_table(offline_stats, True)
+            if copy_to_clipboard(table):
+                print("Copied to clipboard!")
+            else:
+                print(
+                    "Failed to copy to clipboard. Output to .tsv (for importing into sheets)? (y/N): "
+                )
+                if input() == "y":
+                    with open("completion_times.tsv", "w", encoding="utf-8") as f:
+                        f.write(table)
+                else:
+                    print("Skipping output to .tsv.")
 
 
 if __name__ == "__main__":

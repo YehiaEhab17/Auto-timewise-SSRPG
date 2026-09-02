@@ -66,4 +66,5 @@ class LocOfflineStats:
     chests_per_run: int
     value_per_clear: float  # from chest rates
     enchant_rate: float  # calculated based on speed
+    enchant_rate_best: float  # calculated based on best time
     # TODO: later stuff for emerald eggs, event resources, etc. things ppl might want

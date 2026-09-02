@@ -1,15 +1,9 @@
 
-best place for enchants
-give the user the best currently (based on current chests, hp gain/loss, avg time)
-but also the best if they can optimise (based on current chests, hp gain/loss, best time)
-and the best generally (based on best time)
-allow input also of "time afk"
-
-checking net hp, level, chests, etc
-
 best place to farm event resources
 x clears until y enchants table
 emerald eggs too!
 
 maybe add more save file utils
 (save editing maybe?)
+
+error checking on pasting file path or save text

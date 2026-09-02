@@ -1,14 +1,14 @@
-import location_data
-from classes import EVENT_LOCATIONS, LOCATION_INDEX, LOCATION_NAMES
-from saves import get_save
-from timewise_logic import (
-    sort_locs_by_rate,
+from cli.saves import get_save
+from cli.util import choose_number, copy_to_clipboard, parse_afk_time
+from cli.xlsx_data import get_location_values
+from core.classes import EVENT_LOCATIONS, LOCATION_INDEX, LOCATION_NAMES
+from core.timewise_logic import (
     get_completion_time_table,
     get_location_times,
     get_offline_stats,
     get_timewise_formatted_time,
+    sort_locs_by_rate,
 )
-from util import choose_number, copy_to_clipboard, parse_afk_time
 
 
 def start():
@@ -28,7 +28,7 @@ Hello and welcome to the sundial! to get started, choose a save file to analyze
     #     json.dump(save, f, indent=2)
 
     # path 1: get the optimal stats direclty here
-    location_values = location_data.get_location_values()
+    location_values = get_location_values()
     if location_values is None:
         print(
             "wasnt able to find the location values to calculate optimal location. want to do anything else with your save?"

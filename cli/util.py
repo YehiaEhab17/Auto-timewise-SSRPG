@@ -43,7 +43,7 @@ def copy_to_clipboard(text):
 
 
 def parse_afk_time(afk_time_str: str) -> int:  # seconds
-    if afk_time_str == "0":
+    if not afk_time_str:
         return 0
     hours, minutes = afk_time_str.split(":")
     try:

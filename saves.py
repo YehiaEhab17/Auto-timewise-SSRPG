@@ -1,8 +1,8 @@
 import base64
 import hashlib
 import platform
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import Rijndael
 from Slimjson import Slimjson
@@ -10,7 +10,6 @@ from util import choose_number
 
 
 def get_save():
-    selected = None
     source: int = choose_number(
         message="1. Get saves from Steam profiles \n2. Enter a path manually \n3. Paste save file text\n",
         retry=False,
@@ -61,7 +60,7 @@ Found the following players:"""
         print(f"{i + 1}. {saves[f'save_file_{i}']['player_name']} ")
 
     chosen_player = choose_number(
-        message="Select the player you would like to view the stats for:",
+        message="Select the player you would like to view the stats for: ",
         retry=False,
         default=1,
         max=save_count,

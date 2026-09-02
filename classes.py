@@ -1,5 +1,38 @@
 from dataclasses import dataclass
 
+LOCATION_NAMES = {
+    "rocky_plateau": "Rocky Plateau",
+    "deadwood_valley": "Deadwood Canyon",
+    "caustic_caves": "Caves of Fear",
+    "fungus_forest": "Mushroom Forest",
+    "undead_crypt": "Haunted Halls",
+    "bronze_mine": "Boiling Mine",
+    "icy_ridge": "Icy Ridge",
+    "temple": "Temple",
+}
+
+LOCATION_INDEX = {
+    "rocky_plateau": 1,
+    "deadwood_valley": 2,
+    "caustic_caves": 3,
+    "fungus_forest": 4,
+    "undead_crypt": 5,
+    "bronze_mine": 6,
+    "icy_ridge": 7,
+    "temple": 8,
+}
+
+
+EVENT_LOCATIONS = {
+    "summer": "rocky_plateau",
+    "halloween": "undead_crypt",
+    "winter": "icy_ridge",
+    "spring": "fungus_forest",
+    "guardian_2x": "bronze_mine",
+    "xyloalgia_2x": "deadwood_valley",
+    "nagaraja_2x": "temple",
+}
+
 
 # {'id': 'caustic_caves3', 'bT': 1112.0, 'aT': 1811.661, 'aHl': 20.82896, 'aHg': 0.0, 'aKg': 13.34721, 'aXg': 17.55122, 'aRg': 154.8184, 'd': 754.3131}
 @dataclass

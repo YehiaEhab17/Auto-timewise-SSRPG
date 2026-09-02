@@ -1,6 +1,6 @@
 import re
 
-from classes import LocOfflineStats, LocPlayerStats
+from classes import LocOfflineStats, LocPlayerStats, LOCATION_INDEX
 
 
 def get_location_times(stats):
@@ -35,7 +35,7 @@ def get_location_times(stats):
     return locations
 
 
-def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
+def get_max_runs(loc: LocPlayerStats, star_levels, player_level, chests_per_run):
 
     max_unlocked = star_levels[loc.name]
     star_diff = max_unlocked - loc.stars
@@ -51,7 +51,6 @@ def get_max_runs(loc: LocPlayerStats, star_levels, player_level):
     elif star_diff == 1:
         guarantee = 1 / 3
 
-    chests_per_run = get_chests_per_run(loc)
     if loc.net_hp >= 0:
         runs_before_death = max_chests
     else:
@@ -77,16 +76,18 @@ def get_completion_time(time, loops, chests_per_run=1):
     return total_frames
 
 
-def get_chests_per_run(loc):
+def get_chests_per_run(loc, active_event):
     if loc.name == "caustic_caves" and loc.stars >= 5 and loc.stars <= 15:
-        return 2
+        base = 2
     else:
-        return 1
+        base = 1
 
-    # TODO: event logic too
+    return base + 1 if loc.name == active_event else base
 
 
-def get_offline_stats(locations, location_values, star_levels, player_level):
+def get_offline_stats(
+    locations, location_values, star_levels, player_level, active_event
+):
     offline_stats_dict: dict[tuple[str, int], LocOfflineStats] = {}
 
     for loc in locations.values():
@@ -97,9 +98,9 @@ def get_offline_stats(locations, location_values, star_levels, player_level):
         bT = loc.bT
         aT = loc.aT
 
-        loops = get_max_runs(loc, star_levels, player_level)
+        chests_per_run = get_chests_per_run(loc, active_event)
+        loops = get_max_runs(loc, star_levels, player_level, chests_per_run)
         ends_in_death = loops != 100 + 5 * player_level
-        chests_per_run = get_chests_per_run(loc)
         completed_in = get_completion_time(aT, loops, chests_per_run)
         completed_in_best = get_completion_time(bT, loops, chests_per_run)
 
@@ -146,16 +147,6 @@ def get_completion_time_table(
     offline_stats_dict: dict[tuple[str, int], LocOfflineStats],
     include_deaths: bool = False,
 ):
-    LOCATIONS = {
-        "rocky_plateau": 1,
-        "deadwood_valley": 2,
-        "caustic_caves": 3,
-        "fungus_forest": 4,
-        "undead_crypt": 5,
-        "bronze_mine": 6,
-        "icy_ridge": 7,
-        "temple": 8,
-    }
 
     completion_time_table = [["" for _ in range(32)] for _ in range(8)]
 
@@ -165,8 +156,8 @@ def get_completion_time_table(
             continue
         hours, minutes = get_timewise_formatted_time(stats.completed_in)
         col = (stars - 5) * 2
-        completion_time_table[LOCATIONS[name] - 1][col] = hours
-        completion_time_table[LOCATIONS[name] - 1][col + 1] = minutes
+        completion_time_table[LOCATION_INDEX[name] - 1][col] = hours
+        completion_time_table[LOCATION_INDEX[name] - 1][col + 1] = minutes
 
     return format_table(completion_time_table)
 

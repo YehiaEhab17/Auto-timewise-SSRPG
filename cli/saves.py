@@ -41,12 +41,20 @@ def get_save():
 
     if source == 2:
         path: str = input("enter the path manually\n")
-        with open(str(path), "r") as f:
-            save_text = f.read()
+        try:
+            with open(str(path), "r") as f:
+                save_text = f.read()
+        except (OSError, ValueError) as e:
+            print(f"Failed to read text file: {e}")
+            sys.exit()
+
     if source == 3:
         save_text = input("paste the save file text here\n")
 
     saves, save_count = parse_saves(save_text)
+    if not save_count:
+        print("Are you sure you inputted the right save?")
+        sys.exit()
 
     print(
         """

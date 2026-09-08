@@ -1,16 +1,17 @@
+from core.classes import LOCATION_NAMES
 from core.saves import parse_saves
 from core.timewise_logic import (
     get_location_times,
     get_offline_stats,
-    sort_locs_by_rate,
 )
 
 
-def analyze_save(save_text, location_values, player_index=0, event_loc=None):
-    """Analyze a save file and return results for the web frontend."""
+def analyse_save(save_text, location_values, player_index=0, event_loc=None):
     saves, save_count = parse_saves(save_text)
     if player_index >= save_count:
-        raise ValueError(f"player_index {player_index} out of range ({save_count} players)")
+        raise ValueError(
+            f"player_index {player_index} out of range ({save_count} players)"
+        )
 
     save = saves[f"save_file_{player_index}"]
 
@@ -23,15 +24,12 @@ def analyze_save(save_text, location_values, player_index=0, event_loc=None):
         locations, location_values, star_levels, player_level, event_loc
     )
 
-    sorted_avg = sort_locs_by_rate(offline_stats, False)
-    sorted_best = sort_locs_by_rate(offline_stats, True)
-
     return {
         "player_name": save.get("player_name"),
         "player_level": player_level,
         "locations": [
             {
-                "name": loc.name,
+                "name": LOCATION_NAMES[loc.name],
                 "stars": loc.stars,
                 "completed_in": loc.completed_in,
                 "completed_in_best": loc.completed_in_best,
@@ -42,6 +40,6 @@ def analyze_save(save_text, location_values, player_index=0, event_loc=None):
                 "enchant_rate": loc.enchant_rate,
                 "enchant_rate_best": loc.enchant_rate_best,
             }
-            for loc in sorted_avg
+            for loc in offline_stats.values()
         ],
     }

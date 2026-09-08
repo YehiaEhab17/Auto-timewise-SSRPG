@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Timesage</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  </head>
+  <body>
+    <h1>Welcome to Timesage</h1>
+
+    <p>Enter your save to begin</p>
+
+    <div id="file">
+      <label for="file-upload">Choose a file:</label>
+      <input type="file" id="file-upload" name="userfile" accept=".txt" />
+      <button disabled type="button" id="file-submit">Start</button>
+    </div>
+
+    <div id="text">
+      <label for="text-upload">Enter your save file:</label>
+      <textarea id="text-upload" name="usertext"></textarea>
+      <button disabled type="button" id="text-submit">Start</button>
+    </div>
+
+    <div id="results">
+      <h2 id="table-header">Enter a save file to view your best rates</h2>
+      <button disabled type="button" id="toggle-deaths">Hide Deaths</button>
+      <button disabled type="button" id="toggle-best">Use Best Times</button>
+
+      <table border="1">
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <script>
+      let pyodide;
+      let fileBtn = document.getElementById("file-submit");
+      let textBtn = document.getElementById("text-submit");
+      let fileInput = document.getElementById("file-upload");
+      let textInput = document.getElementById("text-upload");
+      let deathBtn = document.getElementById("toggle-deaths");
+      let bestBtn = document.getElementById("toggle-best");
+
+      textInput.addEventListener("input", updateButtons);
+      fileInput.addEventListener("change", updateButtons);
+
+      fileBtn.addEventListener("click", handleFile);
+      textBtn.addEventListener("click", handleText);
+      deathBtn.addEventListener("click", toggleDeaths);
+      bestBtn.addEventListener("click", toggleBest);
+
+      let sortKey = "enchant_rate";
+      let sortDir = 1; // 1 asc, -1 desc
+      let hideDeaths = false;
+      let useBest = false;
+      let currentLocations = [];
+
+      //prettier-ignore
+      const columns = [
+          { key: "name",               label: "Location", fmt: v => v,            sort: (a,b)=>a.localeCompare(b) },
+          { key: "stars",              label: "Stars",    fmt: v => v + "*",      sort: (a,b)=>a-b },
+          { key: "completed_in",       label: "Time avg", fmt: fmtTime,           sort: (a,b)=>a-b },
+          { key: "completed_in_best",  label: "Time best",fmt: fmtTime,           sort: (a,b)=>a-b },
+          { key: "enchant_rate",       label: "EP avg",   fmt: fmtEP,             sort: (a,b)=>a-b },
+          { key: "enchant_rate_best",  label: "EP best",  fmt: fmtEP,             sort: (a,b)=>a-b },
+          { key: "ends_in_death",      label: "Death",    fmt: v => v ? "✗":"✓", sort: (a,b)=>a-b },
+       ];
+
+      let ready = false;
+
+      async function init() {
+        pyodide = await loadPyodide();
+        const res = await fetch("timewise.zip");
+        await pyodide.unpackArchive(await res.arrayBuffer(), "zip");
+        ready = true;
+        updateButtons();
+      }
+
+      async function run(saveText) {
+        pyodide.globals.set("save_text", saveText);
+        const result = pyodide.runPython(`
+        import json
+        from web.app import analyse_save
+        from core.location_data import load_from_json
+        location_values = load_from_json("chest_rates.json")
+        json.dumps(analyse_save(save_text, location_values))
+        `);
+        showResults(JSON.parse(result));
+      }
+
+      function updateButtons() {
+        fileBtn.disabled = !(ready && fileInput.files.length);
+        textBtn.disabled = !(ready && textInput.value.trim());
+      }
+
+      async function handleText() {
+        await run(textInput.value);
+      }
+
+      async function handleFile() {
+        const text = await fileInput.files[0].text();
+        await run(text);
+      }
+
+      init();
+
+      function fmtTime(frames) {
+        let s = Math.floor(frames / 30),
+          h = Math.floor(s / 3600),
+          m = Math.floor((s % 3600) / 60);
+        return h + "h " + m + "m";
+      }
+
+      function fmtEP(rate) {
+        return (1 / rate).toFixed(2) + "s/EP";
+      }
+
+      function showResults(results) {
+        deathBtn.disabled = false;
+        bestBtn.disabled = false;
+        currentLocations = results.locations;
+        document.getElementById("table-header").innerText =
+          `Results for ${results.player_name} (level ${results.player_level})`;
+        render();
+      }
+
+      function render() {}
+
+      function toggleDeaths() {
+        if (!hideDeaths) {
+          deathBtn.innerText = "Show Deaths";
+        } else {
+          deathBtn.innerText = "Hide Deaths";
+        }
+        hideDeaths = !hideDeaths;
+        render();
+      }
+
+      function toggleBest() {
+        if (useBest) {
+          bestBtn.innerText = "Use Best Times";
+        } else {
+          bestBtn.innerText = "Use Average Times";
+        }
+        useBest = !useBest;
+        render();
+      }
+    </script>
+  </body>
+</html>

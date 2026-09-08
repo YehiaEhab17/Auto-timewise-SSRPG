@@ -1,6 +1,6 @@
 import base64
-import hashlib
 
+from core.crypto import pbkdf2_hmac_sha1
 from core.Rijndael import RijndaelBlock
 from core.Slimjson import Slimjson
 
@@ -21,7 +21,7 @@ def parse_saves(save_text) -> tuple[dict, int]:
         i += 1
 
     if i == 0:
-        print("no saves found for this Steam profile")
+        print("no saves found for this profile")
     return parsed, i
 
 
@@ -32,7 +32,7 @@ def decrypt_save(progress_data):
     iv = temp[32:64]
     ciphertext = temp[64:]
 
-    key = hashlib.pbkdf2_hmac("sha1", b"peekabeyoufoundme", salt, 1000, 32)
+    key = pbkdf2_hmac_sha1(b"peekabeyoufoundme", salt, 1000, 32)
 
     cipher = RijndaelBlock(key, "cbc")
     decrypted = cipher.decrypt(ciphertext, 256, iv)

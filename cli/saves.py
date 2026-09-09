@@ -1,12 +1,9 @@
-import base64
-import hashlib
 import platform
 import sys
 from pathlib import Path
 
-import Rijndael
-from Slimjson import Slimjson
-from util import choose_number
+from cli.util import choose_number
+from core.saves import parse_saves
 
 
 def get_save():
@@ -44,12 +41,26 @@ def get_save():
 
     if source == 2:
         path: str = input("enter the path manually\n")
-        with open(str(path), "r") as f:
-            save_text = f.read()
-    if source == 3:
-        save_text = input("paste the save file text here\n")
+        try:
+            with open(str(path), "r") as f:
+                save_text = f.read()
+        except (OSError, ValueError) as e:
+            print(f"Failed to read text file: {e}")
+            sys.exit()
 
+    if source == 3:
+        print("paste the save file text here\n")
+        save_text = ""
+        while True:
+            next_line = input()
+            if next_line:
+                save_text += next_line
+            else:
+                break
     saves, save_count = parse_saves(save_text)
+    if not save_count:
+        print("Are you sure you inputted the right save?")
+        sys.exit()
 
     print(
         """
@@ -67,45 +78,6 @@ Found the following players:"""
     )
 
     return saves[f"save_file_{chosen_player - 1}"]
-
-
-def parse_saves(save_text) -> tuple[dict, int]:
-    parser = Slimjson()
-    parsed: dict = parser.parse(save_text)
-
-    i = 0
-    while True:
-        if f"save_file_{i}" not in parsed:
-            break
-        progress_data_e = parsed[f"save_file_{i}"]["progress_data"]
-        progress_data_d = decrypt_save(progress_data_e)
-
-        parsed[f"save_file_{i}"]["progress_data"] = parser.parse(progress_data_d)
-        parsed[f"save_file_{i}"]["progress_data"]["encrypted"] = False
-        i += 1
-
-    if i == 0:
-        print("no saves found for this Steam profile")
-    return parsed, i
-
-
-def decrypt_save(progress_data):
-    temp = list(base64.b64decode(progress_data))
-
-    salt = bytes(temp[0:32])
-    iv = temp[32:64]
-    ciphertext = temp[64:]
-
-    key = hashlib.pbkdf2_hmac("sha1", b"peekabeyoufoundme", salt, 1000, 32)
-
-    cipher = Rijndael.RijndaelBlock(key, "cbc")
-    decrypted = cipher.decrypt(ciphertext, 256, iv)
-
-    padding = decrypted[-1]
-
-    plaintext = bytes(decrypted[: len(decrypted) - padding]).decode("utf-8")
-
-    return plaintext
 
 
 # Windows: C:/Users/userName/AppData/LocalLow/Martian Rex, Inc_/Stone Story/(steam id)/primary_save.txt

@@ -1,16 +1,10 @@
-import json
 from pathlib import Path
 
-LOCATIONS = {
-    "Rocky Plateau": "rocky_plateau",
-    "Deadwood Canyon": "deadwood_valley",
-    "Caves of Fear": "caustic_caves",
-    "Mushroom Forest": "fungus_forest",
-    "Haunted Halls": "undead_crypt",
-    "Boiling Mine": "bronze_mine",
-    "Icy Ridge": "icy_ridge",
-    "Temple": "temple",
-}
+from core.classes import LOCATION_NAMES
+from core.location_data import load_from_json, save_json
+
+# display name -> internal name (reverse of LOCATION_NAMES)
+LOCATIONS = {display: internal for internal, display in LOCATION_NAMES.items()}
 
 
 def load_from_xlsx(sheet_path):
@@ -37,27 +31,8 @@ def load_from_xlsx(sheet_path):
     return LOCATION_VALUES
 
 
-def load_from_json(json_path):
-    try:
-        with open(json_path, "r") as f:
-            loaded: dict[str, float] = json.load(f)
-            return loaded
-    except FileNotFoundError:
-        print("file doesn't exist")
-    except json.JSONDecodeError:
-        print("file exists but isn't valid JSON")
-
-
-# TODO: maybe later we add emerald egg chances / other rates too
-
-
-def save_json(json_path, data):
-    with open(json_path, "w") as f:
-        json.dump(data, f, indent=2)
-
-
 def get_location_values():
-    script_location = Path(__file__).parent
+    script_location = Path(__file__).parent.parent
     sheet_path = script_location / "chest_rates.xlsx"
     json_path = script_location / "chest_rates.json"
 

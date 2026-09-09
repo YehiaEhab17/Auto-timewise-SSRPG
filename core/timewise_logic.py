@@ -1,6 +1,6 @@
 import re
 
-from classes import LocOfflineStats, LocPlayerStats, LOCATION_INDEX
+from core.classes import LocOfflineStats, LocPlayerStats, LOCATION_INDEX
 
 
 def get_location_times(stats):

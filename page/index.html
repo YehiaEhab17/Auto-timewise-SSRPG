@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
     <title>Timesage</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
   </head>
@@ -35,6 +37,7 @@
     </div>
 
     <script>
+      // ----------------------- VARIABLES ----------------------------
       let pyodide;
       let fileBtn = document.getElementById("file-submit");
       let textBtn = document.getElementById("text-submit");
@@ -42,6 +45,9 @@
       let textInput = document.getElementById("text-upload");
       let deathBtn = document.getElementById("toggle-deaths");
       let bestBtn = document.getElementById("toggle-best");
+
+      let tableBody = document.getElementById("table-body");
+      let tableHead = document.getElementById("table-head");
 
       textInput.addEventListener("input", updateButtons);
       fileInput.addEventListener("change", updateButtons);
@@ -51,34 +57,36 @@
       deathBtn.addEventListener("click", toggleDeaths);
       bestBtn.addEventListener("click", toggleBest);
 
+      tableHead.addEventListener("click", (e) => handleSort(e));
+
       let sortKey = "enchant_rate";
-      let sortDir = 1; // 1 asc, -1 desc
+      let sortDir = -1; // 1 asc, -1 desc
       let hideDeaths = false;
       let useBest = false;
       let currentLocations = [];
 
       //prettier-ignore
       const columns = [
-          { key: "name",               label: "Location", fmt: v => v,            sort: (a,b)=>a.localeCompare(b) },
-          { key: "stars",              label: "Stars",    fmt: v => v + "*",      sort: (a,b)=>a-b },
-          { key: "completed_in",       label: "Time avg", fmt: fmtTime,           sort: (a,b)=>a-b },
-          { key: "completed_in_best",  label: "Time best",fmt: fmtTime,           sort: (a,b)=>a-b },
-          { key: "enchant_rate",       label: "EP avg",   fmt: fmtEP,             sort: (a,b)=>a-b },
-          { key: "enchant_rate_best",  label: "EP best",  fmt: fmtEP,             sort: (a,b)=>a-b },
-          { key: "ends_in_death",      label: "Death",    fmt: v => v ? "✗":"✓", sort: (a,b)=>a-b },
+          { key: "name",               label: "Location",       fmt: v => v,            group:"both", sort: (a,b)=>a.localeCompare(b) },
+          { key: "stars",              label: "Stars",          fmt: v => v + "*",      group:"both", sort: (a,b)=>a-b },
+          { key: "completed_in",       label: "Completion Time",fmt: fmtTime,           group:"avg",  sort: (a,b)=>a-b },
+          { key: "completed_in_best",  label: "Completion Time",fmt: fmtTime,           group:"best", sort: (a,b)=>a-b },
+          { key: "enchant_rate",       label: "Seconds for 1EP",fmt: fmtEP,             group:"avg",  sort: (a,b)=>a-b },
+          { key: "enchant_rate_best",  label: "Seconds for 1EP",fmt: fmtEP,             group:"best", sort: (a,b)=>a-b },
+          { key: "ends_in_death",      label: "Death",          fmt: v => v ? "✗":"✓", group:"both", sort: (a,b)=>a-b },
        ];
 
-      let ready = false;
+      // ----------------------- MAIN LOGIC ----------------------------
 
       async function init() {
         pyodide = await loadPyodide();
         const res = await fetch("timewise.zip");
         await pyodide.unpackArchive(await res.arrayBuffer(), "zip");
-        ready = true;
-        updateButtons();
       }
 
       async function run(saveText) {
+        if (!pyodide) await init();
+
         pyodide.globals.set("save_text", saveText);
         const result = pyodide.runPython(`
         import json
@@ -90,9 +98,62 @@
         showResults(JSON.parse(result));
       }
 
+      function showResults(results) {
+        deathBtn.disabled = false;
+        bestBtn.disabled = false;
+        currentLocations = results.locations;
+        document.getElementById("table-header").innerText =
+          `Results for ${results.player_name} (level ${results.player_level})`;
+        render();
+      }
+
+      function render() {
+        let rows = currentLocations.filter((loc) => !loc.ends_in_death || !hideDeaths);
+
+        const col = columns.find((c) => c.key === sortKey);
+        rows.sort((a, b) => col.sort(a[sortKey], b[sortKey]) * sortDir);
+
+        let activeCols = columns.filter((c) => c.group != (useBest ? "avg" : "best"));
+
+        const headers = activeCols
+          .map((c) => {
+            const arrow = c.key === sortKey ? (sortDir === 1 ? " ▲" : " ▼") : "";
+            return `<th data-key='${c.key}'>` + c.label + arrow + "</th>";
+          })
+          .join("");
+
+        const html = rows
+          .map((row) => {
+            const cells = activeCols
+              .map((c) => "<td>" + c.fmt(row[c.key]) + "</td>")
+              .join("");
+            const ri = useBest ? "rank_best" : "rank_avg";
+            return `<tr class='rank-${row[ri]}'>` + cells + "</tr>";
+          })
+          .join("");
+
+        tableBody.innerHTML = html;
+        tableHead.innerHTML = headers;
+      }
+
+      // ----------------------- HELPERS ----------------------------
+
+      function fmtTime(frames) {
+        let s = Math.floor(frames / 30),
+          h = Math.floor(s / 3600),
+          m = Math.floor((s % 3600) / 60);
+        return h + "h " + m + "m";
+      }
+
+      function fmtEP(rate) {
+        return rate ? (1 / rate).toFixed(2) + "s/EP" : "-";
+      }
+
+      // ----------------------- HANDLERS ----------------------------
+
       function updateButtons() {
-        fileBtn.disabled = !(ready && fileInput.files.length);
-        textBtn.disabled = !(ready && textInput.value.trim());
+        fileBtn.disabled = !fileInput.files.length;
+        textBtn.disabled = !textInput.value.trim();
       }
 
       async function handleText() {
@@ -104,29 +165,15 @@
         await run(text);
       }
 
-      init();
-
-      function fmtTime(frames) {
-        let s = Math.floor(frames / 30),
-          h = Math.floor(s / 3600),
-          m = Math.floor((s % 3600) / 60);
-        return h + "h " + m + "m";
-      }
-
-      function fmtEP(rate) {
-        return (1 / rate).toFixed(2) + "s/EP";
-      }
-
-      function showResults(results) {
-        deathBtn.disabled = false;
-        bestBtn.disabled = false;
-        currentLocations = results.locations;
-        document.getElementById("table-header").innerText =
-          `Results for ${results.player_name} (level ${results.player_level})`;
+      function handleSort(event) {
+        const key = event.target.dataset.key;
+        if (sortKey === key) sortDir *= -1;
+        else {
+          sortKey = key;
+          sortDir = key.includes("enchant_rate") ? 1 : -1;
+        }
         render();
       }
-
-      function render() {}
 
       function toggleDeaths() {
         if (!hideDeaths) {
@@ -141,10 +188,13 @@
       function toggleBest() {
         if (useBest) {
           bestBtn.innerText = "Use Best Times";
+          sortKey = "enchant_rate";
         } else {
           bestBtn.innerText = "Use Average Times";
+          sortKey = "enchant_rate_best";
         }
         useBest = !useBest;
+        sortDir = 1;
         render();
       }
     </script>

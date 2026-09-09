@@ -1,13 +1,15 @@
 class Slimjson:
     def __init__(self):
-        self.arrayDelimiters = [',', ']'];
-        self.dictDelimiters = [',', '}'];
-        self.dictKeyDelimiters = [':'];
-        self.whitespace = ['\t', '\r', '\n', ' ', '\u2002']
+        self.arrayDelimiters = [",", "]"]
+        self.dictDelimiters = [",", "}"]
+        self.dictKeyDelimiters = [":"]
+        self.whitespace = ["\t", "\r", "\n", " ", "\u2002"]
 
-        self.i = 0 
+        self.i = 0
 
     def parse(self, sjson):
+        if isinstance(sjson, str):
+            sjson = sjson.replace("\r", "").replace("\n", "")
         return self.parse_object(sjson, None)
 
     def parse_object(self, first, second):
@@ -18,55 +20,54 @@ class Slimjson:
             return self.parse_object_list(first)
         if isinstance(second, str):
             return self.parse_object_key(first, second)
-        
-        return self.parse_object_list(first,second)
-    
+
+        return self.parse_object_list(first, second)
 
     def parse_object_key(self, sjson, key):
-        self.i = 0 
+        self.i = 0
         parsed = self.parse_object_dictionary(sjson)
         if parsed is not None and key in parsed:
             return parsed[key]
-        return None 
+        return None
 
     def parse_object_list(self, sjson, delimiters=None):
-        self.i = self.skip_formatting(sjson, self.i);
-        if sjson[self.i] == "{" :
-            return self.parse_object_dictionary(sjson);
-        
+        self.i = self.skip_formatting(sjson, self.i)
+        if sjson[self.i] == "{":
+            return self.parse_object_dictionary(sjson)
+
         if sjson[self.i] == "[":
-            return self.parse_object_array(sjson);
-        
-        text = self.parse_object_string(sjson, delimiters);
+            return self.parse_object_array(sjson)
+
+        text = self.parse_object_string(sjson, delimiters)
         text2 = text.strip() if text is not None else None
-        if (text2 is None):
+        if text2 is None:
             raise ValueError(f"Expected value at index {self.i}")
-        
+
         if len(text2) == 0:
-            return "";
-        
+            return ""
+
         try:
             return float(text)
         except ValueError:
             pass
-        
-        if (text2.lower() == "true"):
-            return True;
-        if (text2.lower() == "false"):
-            return False;
-        
+
+        if text2.lower() == "true":
+            return True
+        if text2.lower() == "false":
+            return False
+
         if text2.startswith('"') and text2.endswith('"'):
             text = text2[1:-1]
 
         if text2 == "null":
             text = None
-        return text;
+        return text
 
     def parse_object_string(self, sjson, delimiters):
         if sjson[self.i] == '"':
-            num = sjson.find('"', self.i+1)
+            num = sjson.find('"', self.i + 1)
             length = num - self.i - 1
-            result = sjson[self.i+1:self.i+1+length]
+            result = sjson[self.i + 1 : self.i + 1 + length]
             self.i = num + 1
             return result
         flag = False
@@ -78,7 +79,7 @@ class Slimjson:
             # i++;
             # continue;
             # }
-            if not flag and ((delimiters is not None and c in delimiters) or c == '\n'):
+            if not flag and ((delimiters is not None and c in delimiters) or c == "\n"):
                 break
             string += c
             flag = False
@@ -93,7 +94,7 @@ class Slimjson:
             self.i = self.skip_formatting(sjson, self.i)
             if self.i >= len(sjson):
                 raise ValueError(f"Expected ']' at {self.i}")
-            if sjson[self.i] == ']':
+            if sjson[self.i] == "]":
                 self.i += 1
                 break
             item = self.parse_object(sjson, self.arrayDelimiters)
@@ -101,16 +102,15 @@ class Slimjson:
                 raise ValueError(f"Expected ']' at {self.i}")
             self.i = self.skip_formatting(sjson, self.i)
             c = sjson[self.i]
-            if c != ']' and c != ',':
+            if c != "]" and c != ",":
                 raise ValueError(f"Expected ']' at {self.i}")
 
             items.append(item)
             self.i += 1
 
-            if c == ']':
+            if c == "]":
                 break
         return items
-        
 
     def parse_object_dictionary(self, sjson):
         self.i += 1
@@ -120,7 +120,7 @@ class Slimjson:
             self.i = self.skip_formatting(sjson, self.i)
             if self.i >= len(sjson):
                 raise ValueError(f"Expected '}}' at {self.i}")
-            if sjson[self.i] == '}':
+            if sjson[self.i] == "}":
                 self.i += 1
                 break
 
@@ -130,24 +130,22 @@ class Slimjson:
             if self.i > len(sjson):
                 raise ValueError(f"Expected ':' at {self.i}")
             c = sjson[self.i]
-            if c != ':':
+            if c != ":":
                 raise ValueError(f"Expected ':' at {self.i}")
             self.i += 1
             value = self.parse_object(sjson, self.dictDelimiters)
-            dictionary[text] = value 
+            dictionary[text] = value
             self.i = self.skip_formatting(sjson, self.i)
             if self.i > len(sjson):
-                raise ValueError(f"Expected '}}' at {self.i}")           
+                raise ValueError(f"Expected '}}' at {self.i}")
             c = sjson[self.i]
-            if c != '}' and c != ',':
+            if c != "}" and c != ",":
                 raise ValueError(f"Expected '}}' at {self.i}")
             self.i += 1
 
-            if c == '}':
+            if c == "}":
                 break
         return dictionary
-        
-
 
     def skip_formatting(self, string, index):
         while index < len(string) and string[index] in self.whitespace:

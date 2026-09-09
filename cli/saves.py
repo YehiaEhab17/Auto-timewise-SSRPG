@@ -49,8 +49,14 @@ def get_save():
             sys.exit()
 
     if source == 3:
-        save_text = input("paste the save file text here\n")
-
+        print("paste the save file text here\n")
+        save_text = ""
+        while True:
+            next_line = input()
+            if next_line:
+                save_text += next_line
+            else:
+                break
     saves, save_count = parse_saves(save_text)
     if not save_count:
         print("Are you sure you inputted the right save?")

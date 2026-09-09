@@ -9,31 +9,36 @@
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
   </head>
   <body>
-    <h1>Welcome to Timesage</h1>
+    <div id="app">
+      <h1>Timesage</h1>
+      <p>Enter your save to begin</p>
 
-    <p>Enter your save to begin</p>
+      <div id="file">
+        <h3>From file</h3>
+        <input type="file" id="file-upload" name="userfile" accept=".txt" />
+        <button disabled type="button" id="file-submit">Start</button>
+      </div>
 
-    <div id="file">
-      <label for="file-upload">Choose a file:</label>
-      <input type="file" id="file-upload" name="userfile" accept=".txt" />
-      <button disabled type="button" id="file-submit">Start</button>
-    </div>
+      <div id="text">
+        <h3>From text</h3>
+        <textarea id="text-upload" name="usertext" placeholder="Paste your save file here..."></textarea>
+        <button disabled type="button" id="text-submit">Start</button>
+      </div>
 
-    <div id="text">
-      <label for="text-upload">Enter your save file:</label>
-      <textarea id="text-upload" name="usertext"></textarea>
-      <button disabled type="button" id="text-submit">Start</button>
-    </div>
+      <div id="results">
+        <h2 id="table-header"></h2>
+        <div id="controls">
+          <button disabled type="button" id="toggle-deaths">Hide Deaths</button>
+          <button disabled type="button" id="toggle-best">Use Best Times</button>
+        </div>
 
-    <div id="results">
-      <h2 id="table-header">Enter a save file to view your best rates</h2>
-      <button disabled type="button" id="toggle-deaths">Hide Deaths</button>
-      <button disabled type="button" id="toggle-best">Use Best Times</button>
-
-      <table border="1">
-        <thead id="table-head"></thead>
-        <tbody id="table-body"></tbody>
-      </table>
+        <div id="table-scroll">
+          <table>
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script>

@@ -49,7 +49,9 @@ def get_save():
             sys.exit()
 
     if source == 3:
-        print("paste the save file text here\n")
+        print(
+            "paste the save file text here \n(terminals truncate pastes so might not work)\n"
+        )
         save_text = ""
         while True:
             next_line = input()

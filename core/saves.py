@@ -6,7 +6,7 @@ from core.Slimjson import Slimjson
 
 
 def parse_saves(save_text) -> tuple[dict, int]:
-    if not save_text:
+    if not save_text.strip():
         return {}, 0
     parser = Slimjson()
     parsed: dict = parser.parse(save_text)

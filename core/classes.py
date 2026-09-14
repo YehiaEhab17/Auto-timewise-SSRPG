@@ -31,6 +31,7 @@ EVENT_LOCATIONS = {
     "guardian_2x": "bronze_mine",
     "xyloalgia_2x": "deadwood_valley",
     "nagaraja_2x": "temple",
+    "bolesh_2x": "caustic_caves",
 }
 
 

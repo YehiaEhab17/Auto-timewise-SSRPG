@@ -31,6 +31,15 @@ time events.
 
 ### 2.3 Emerald Eggs
 
+### 2.4 Save File Utilities
+
+Maybe save file editing as well?
+
+> NOTE: Pine, this project is supposed to tell you the best grind
+> locations, not a swiss army knife.
+
+### 2.5 Error checking on save files
+
 ## 3 Options
 
 ### 3.1 Allow for "Time AFK" as a metric.

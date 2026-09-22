@@ -1,3 +1,4 @@
+import math
 import re
 
 from core.classes import LocOfflineStats, LocPlayerStats, LOCATION_INDEX
@@ -35,10 +36,10 @@ def get_location_times(stats):
     return locations
 
 
-def get_max_runs(loc: LocPlayerStats, star_levels, player_level, chests_per_run):
+def get_max_loops(loc: LocPlayerStats, star_levels, player_level, chests_per_loop):
 
-    max_unlocked = star_levels[loc.name]
-    star_diff = max_unlocked - loc.stars
+    max_star_unlocked = star_levels[loc.name]
+    star_diff = max_star_unlocked - loc.stars
     max_hp = player_level + 20
     max_chests = player_level * 5 + 100
     # TODO: potions affect
@@ -51,23 +52,26 @@ def get_max_runs(loc: LocPlayerStats, star_levels, player_level, chests_per_run)
     elif star_diff == 1:
         guarantee = 1 / 3
 
-    if loc.net_hp >= 0:
-        runs_before_death = max_chests
+    loops_for_max_chests = math.ceil(max_chests / chests_per_loop)
+    guaranteed_loops = round(guarantee * max_chests / chests_per_loop)
+
+    if loc.net_hp >= 0 or star_diff >= 3:
+        loops_before_death = loops_for_max_chests
     else:
-        runs_before_death = max_hp // abs(loc.net_hp)
+        loops_before_death = min(max_hp // abs(loc.net_hp), max_chests)
 
-    chests = round(guarantee * max_chests)
+    loops = min(loops_for_max_chests, loops_before_death)
+    loops = max(loops, guaranteed_loops)
+    death = loops_before_death < loops_for_max_chests
 
-    runs = min(max(chests, runs_before_death * chests_per_run), 400)
-
-    return runs
+    return loops, death
 
 
-def get_completion_time(time, loops, chests_per_run=1):
+def get_completion_time(time, loops, chests_per_loop=1):
     OROBOROUS_FRAMES = 118
     CHEST_FRAMES = 36
 
-    treasures = loops * chests_per_run
+    treasures = loops * chests_per_loop
 
     total_frames = (
         (time * loops) + (OROBOROUS_FRAMES * (loops - 1)) + (CHEST_FRAMES * treasures)
@@ -76,7 +80,7 @@ def get_completion_time(time, loops, chests_per_run=1):
     return total_frames
 
 
-def get_chests_per_run(loc, active_event):
+def get_chests_per_loop(loc, active_event):
     if loc.name == "caustic_caves" and loc.stars >= 5 and loc.stars <= 15:
         base = 2
     else:
@@ -98,18 +102,21 @@ def get_offline_stats(
         bT = loc.bT
         aT = loc.aT
 
-        chests_per_run = get_chests_per_run(loc, active_event)
-        loops = get_max_runs(loc, star_levels, player_level, chests_per_run)
-        ends_in_death = loops != 100 + 5 * player_level
-        completed_in = get_completion_time(aT, loops, chests_per_run)
-        completed_in_best = get_completion_time(bT, loops, chests_per_run)
+        chests_per_loop = get_chests_per_loop(loc, active_event)
+        loops, ends_in_death = get_max_loops(
+            loc, star_levels, player_level, chests_per_loop
+        )
+        completed_in = get_completion_time(aT, loops, chests_per_loop)
+        completed_in_best = get_completion_time(bT, loops, chests_per_loop)
 
         if loc_id not in location_values:
             print(f"skipping {loc_id}")
             continue
         value_per_clear = location_values[loc_id]
-        enchant_rate = (value_per_clear * loops) / (completed_in / 30)
-        enchant_rate_best = (value_per_clear * loops) / (completed_in_best / 30)
+        enchant_rate = (value_per_clear * loops * chests_per_loop) / (completed_in / 30)
+        enchant_rate_best = (value_per_clear * loops * chests_per_loop) / (
+            completed_in_best / 30
+        )
 
         offline_stats = LocOfflineStats(
             loc_id=loc_id,
@@ -121,7 +128,7 @@ def get_offline_stats(
             completed_in_best=completed_in_best,
             ends_in_death=ends_in_death,
             loops=loops,
-            chests_per_run=chests_per_run,
+            chests_per_loop=chests_per_loop,
             value_per_clear=value_per_clear,
             enchant_rate=enchant_rate,
             enchant_rate_best=enchant_rate_best,

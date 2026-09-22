@@ -13,26 +13,14 @@
       <h1>Timesage</h1>
       <p>Enter your save to begin</p>
 
-      <div id="file">
-        <h3>From file</h3>
-        <input type="file" id="file-upload" name="userfile" accept=".txt" />
-        <button disabled type="button" id="file-submit">Start</button>
-      </div>
-
-      <div id="text">
-        <h3>From text</h3>
-        <textarea
-          id="text-upload"
-          name="usertext"
-          placeholder="Paste your save file here..."
-        ></textarea>
-        <button disabled type="button" id="text-submit">Start</button>
-      </div>
-
       <div id="options">
-        <h3>Advanced Options</h3>
+        <h3>Options</h3>
         <fieldset>
           <legend>AFK Time</legend>
+          <p>
+            Filters results to fit within your AFK time range. Leave empty to show all
+            results
+          </p>
           <label for="afk-hours">Hours:</label>
           <input
             type="number"
@@ -42,6 +30,7 @@
             max="48"
             step="1"
             oninput="limitInput(this)"
+            placeholder="00"
           />
           <label for="afk-minutes">Minutes:</label>
 
@@ -53,6 +42,7 @@
             max="59"
             step="1"
             oninput="limitInput(this)"
+            placeholder="00"
           />
         </fieldset>
 
@@ -60,8 +50,9 @@
           <form id="events-form">
             <fieldset>
               <legend>Events</legend>
+              <p>Choose an active event to gain bonus chest drops</p>
 
-              <input type="radio" id="none" name="events" value="" />
+              <input type="radio" id="none" name="events" value="" checked />
               <label for="none">None</label>
 
               <input type="radio" id="plateau" name="events" value="rocky_plateau" />
@@ -90,7 +81,23 @@
             </fieldset>
           </form>
         </div>
-        <button disabled type="button" id="update">Update</button>
+        <button type="button" id="update">Apply</button>
+      </div>
+
+      <div id="file">
+        <h3>From file</h3>
+        <input type="file" id="file-upload" name="userfile" accept=".txt" />
+        <button disabled type="button" id="file-submit">Start</button>
+      </div>
+
+      <div id="text">
+        <h3>From text</h3>
+        <textarea
+          id="text-upload"
+          name="usertext"
+          placeholder="Paste your save file here..."
+        ></textarea>
+        <button disabled type="button" id="text-submit">Start</button>
       </div>
 
       <p id="status" class="hidden"></p>
@@ -181,6 +188,7 @@
         resultsEl.classList.add("hidden");
         statusEl.innerText = "Loading...";
         statusEl.classList.remove("hidden");
+        statusEl.classList.remove("error");
         try {
           if (!pyodide) await init();
 
@@ -192,13 +200,14 @@
                     from web.app import analyse_save
                     from core.location_data import load_from_json
                     location_values = load_from_json("chest_rates.json")
-                    json.dumps(analyse_save(save_text, location_values, event_loc))
+                    json.dumps(analyse_save(save_text, location_values, 0, event_loc))
                     `);
           showResults(JSON.parse(result));
           statusEl.classList.add("hidden");
           resultsEl.classList.remove("hidden");
         } catch (e) {
           statusEl.innerText = "Error: " + e.message;
+          statusEl.classList.add("error");
         } finally {
           processing = false;
           textInput.value = "";
@@ -297,7 +306,7 @@
         fileBtn.disabled = !(ready && fileInput.files.length);
         textBtn.disabled = !(ready && textInput.value.trim());
 
-        updateBtn.disabled = !(ready && currentLocations.length);
+        updateBtn.disabled = !ready;
         deathBtn.disabled = !(ready && currentLocations.length);
         bestBtn.disabled = !(ready && currentLocations.length);
       }
@@ -350,6 +359,7 @@
 
       function updateFilter() {
         const changed = updateOptions();
+        if (!saveText) return;
 
         if (changed.includes("eventLoc")) run(saveText);
         else if (changed.includes("afkSeconds")) render();

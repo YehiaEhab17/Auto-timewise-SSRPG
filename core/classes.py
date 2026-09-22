@@ -64,7 +64,7 @@ class LocOfflineStats:
     completed_in_best: float  # frames
     ends_in_death: bool
     loops: int
-    chests_per_run: int
+    chests_per_loop: int
     value_per_clear: float  # from chest rates
     enchant_rate: float  # calculated based on speed
     enchant_rate_best: float  # calculated based on best time

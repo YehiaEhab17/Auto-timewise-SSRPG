@@ -1,6 +1,6 @@
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -12,13 +12,13 @@ body {
   font-size: 14px;
   display: flex;
   justify-content: center;
-  padding-top: 40px;
+  padding: 40px 0 30vh 0;
 }
 
 #app {
   width: 100%;
   max-width: 900px;
-  padding: 0 20px;
+  padding: 0 20px 40px 20px;
 }
 
 h1 {
@@ -41,7 +41,8 @@ p {
 /* ---- inputs ---- */
 
 #file,
-#text {
+#text,
+#options {
   margin-bottom: 16px;
   padding: 12px;
   background-color: #1a1a1a;
@@ -98,6 +99,12 @@ textarea {
   font-size: 13px;
   resize: none;
   box-sizing: border-box;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #6ea8fe;
+  color: #fff;
 }
 
 button {
@@ -121,6 +128,81 @@ button:not(:disabled):hover {
 button:disabled {
   opacity: 0.35;
   cursor: default;
+}
+
+/* ---- options ---- */
+
+#options fieldset {
+  border: 1px solid #2a2a2a;
+  border-radius: 3px;
+  padding: 10px 12px 12px 12px;
+  margin: 0 0 12px 0;
+}
+
+#options legend {
+  color: #aaa;
+  font-size: 0.9rem;
+  padding: 0 6px;
+}
+
+#options input[type="number"] {
+  width: 64px;
+  background-color: #1e1e1e;
+  color: #ccc;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-family: monospace;
+  font-size: 13px;
+  margin-right: 12px;
+}
+
+#options input[type="number"]:focus {
+  outline: none;
+  border-color: #6ea8fe;
+  color: #fff;
+}
+
+#options input[type="number"]::-webkit-inner-spin-button {
+  opacity: 0.4;
+}
+
+#events-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(3, auto 1fr);
+  gap: 6px 8px;
+  align-items: center;
+}
+
+#options fieldset > p,
+#events-form fieldset > p {
+  grid-column: 1 / -1;
+  margin: 0 0 6px 0;
+}
+
+#events-form input[type="radio"] {
+  accent-color: #6ea8fe;
+  margin: 6px 0;
+  cursor: pointer;
+  justify-self: end;
+}
+
+#events-form input[type="radio"] + label {
+  margin-right: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#events-form input[type="radio"]:checked + label {
+  color: #fff;
+}
+
+#events-form label:hover {
+  color: #6ea8fe;
+}
+
+#update {
+  margin-top: 0;
 }
 
 /* ---- results ---- */
@@ -165,7 +247,7 @@ th {
 }
 
 th:hover {
-  color: #7cbb7c;
+  color: #6ea8fe;
 }
 
 tr:hover {
@@ -175,20 +257,30 @@ tr:hover {
 /* ---- rank highlighting ---- */
 
 .rank-1 {
-  background-color: #123212;
+  background-color: #2d4f7e;
 }
 
 .rank-2 {
-  background-color: #102a10;
+  background-color: #1f3a5e;
 }
 
 .rank-3 {
-  background-color: #0f220f;
+  background-color: #152a44;
 }
 
 #status {
   color: #7cbb7c;
   padding: 12px;
+  margin-top: 16px;
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+}
+
+#status.error {
+  color: #e06c6c;
+  border-color: #5a2a2a;
+  background-color: #221a1a;
 }
 
 .hidden {

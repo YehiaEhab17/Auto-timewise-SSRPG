@@ -40,7 +40,7 @@ def analyse_save(save_text, location_values, player_index=0, event_loc=None):
                 "completed_in_best": loc.completed_in_best,
                 "ends_in_death": loc.ends_in_death,
                 "loops": loc.loops,
-                "chests_per_run": loc.chests_per_run,
+                "chests_per_loop": loc.chests_per_loop,
                 "value_per_clear": loc.value_per_clear,
                 "enchant_rate": loc.enchant_rate,
                 "enchant_rate_best": loc.enchant_rate_best,
